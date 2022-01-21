@@ -1,18 +1,22 @@
 {
   "name": "krb-contracts",
   "version": "0.1.0",
-  "description": "",
+  "description": "Krebit Ethereum Contracts for EIP712 Verified Credentials",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/krebit/krb-contracts.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "ethereum",
+    "EIP712",
+    "verifiable-credentials"
+  ],
+  "author": "Krebit <contact@krebit.co>",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/krebit/krb-contracts/issues"
   },
@@ -26,6 +30,7 @@
     "hardhat": "^2.8.1"
   },
   "devDependencies": {
+    "@krebitdao/eip712-vc": "^0.1.0",
     "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",

@@ -4,51 +4,34 @@ const { ethers, upgrades } = require("hardhat");
 const { expect } = require("chai");
 
 const vcTypes = {
-  DID: [
+  VerifiableCredential: [
+    { name: "_context", type: "string" },
+    { name: "_type", type: "string" },
+    { name: "id", type: "string" },
+    { name: "issuer", type: "Issuer" },
+    { name: "credentialSubject", type: "CredentialSubject" },
+    { name: "credentialSchema", type: "CredentialSchema" },
+    { name: "issuanceDate", type: "string" },
+    { name: "expirationDate", type: "string" },
+  ],
+  CredentialSchema: [
+    { name: "id", type: "string" },
+    { name: "_type", type: "string" },
+  ],
+  CredentialSubject: [
     { name: "id", type: "string" },
     { name: "ethereumAddress", type: "address" },
-  ],
-  VerifiableCredential: [
-    { name: "id", type: "string" },
-    { name: "anchorCommit", type: "string" },
-    { name: "issuer", type: "DID" },
-    { name: "credentialSubject", type: "DID" },
-    { name: "claimType", type: "string" },
-    { name: "claimHash", type: "string" },
-    { name: "issuanceDate", type: "uint256" },
-    { name: "expirationDate", type: "uint256" },
+    { name: "_type", type: "string" },
+    { name: "value", type: "string" },
+    { name: "encrypted", type: "string" },
     { name: "trust", type: "uint8" },
     { name: "stake", type: "uint256" },
-    { name: "actionByte", type: "uint8" },
+    { name: "nbf", type: "uint256" },
+    { name: "exp", type: "uint256" },
   ],
-};
-
-const vpTypes = {
-  DID: [
+  Issuer: [
     { name: "id", type: "string" },
     { name: "ethereumAddress", type: "address" },
-  ],
-  VerifiableCredential: [
-    { name: "id", type: "string" },
-    { name: "anchorCommit", type: "string" },
-    { name: "issuer", type: "DID" },
-    { name: "credentialSubject", type: "DID" },
-    { name: "claimType", type: "string" },
-    { name: "claimHash", type: "string" },
-    { name: "issuanceDate", type: "uint256" },
-    { name: "expirationDate", type: "uint256" },
-    { name: "trust", type: "uint8" },
-    { name: "stake", type: "uint256" },
-    { name: "actionByte", type: "uint8" },
-  ],
-  Signature: [
-    { name: "v", type: "uint8" },
-    { name: "r", type: "bytes32" },
-    { name: "s", type: "bytes32" },
-  ],
-  VerifiablePresentation: [
-    { name: "vc", type: "VerifiableCredential" },
-    { name: "proof", type: "Signature" },
   ],
 };
 
@@ -82,7 +65,7 @@ describe("KRBTokenV01", function () {
 
     this.domain = {
       name: "Krebit",
-      version: "01",
+      version: "0.1",
       chainId: await this.issuer.getChainId(),
       verifyingContract: this.krbToken.address,
     };
@@ -93,8 +76,10 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() + 3);
 
     this.verifiableCredential = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
+      _type: "12345",
       id: "ceramic://doc1",
-      anchorCommit: "12345",
       issuer: {
         id: "did:issuer",
         ethereumAddress: this.accounts[1],
@@ -102,15 +87,28 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "fullName",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
+      proof: {
+        verificationMethod: "did:issuer#key-1",
+        ethereumAddress: this.accounts[1],
+        created: new Date(issuanceDate).toISOString(),
+        proofPurpose: "assertionMethod",
+        type: "EthereumEip712Signature2021",
+      },
     };
   });
 
@@ -267,14 +265,6 @@ describe("KRBTokenV01", function () {
     expect(await this.krbToken.DOMAIN_SEPARATOR()).to.equal(hashDomain);
   });
 
-  /* TODO (ethers.utils.solidityKeccak256 ???)
-  it("getUuid", async function () {
-    let uuid = expect(
-      await this.krbToken.getUuid(this.verifiableCredential)
-    ).to.equal("None");
-  });
-  */
-
   it("getVCStatus", async function () {
     expect(await this.krbToken.getVCStatus(this.verifiableCredential)).to.equal(
       "None"
@@ -288,7 +278,7 @@ describe("KRBTokenV01", function () {
   });
 
   it("registerVC", async function () {
-    let signature = await this.issuer._signTypedData(
+    let proofValue = await this.issuer._signTypedData(
       this.domain,
       vcTypes,
       this.verifiableCredential
@@ -299,11 +289,10 @@ describe("KRBTokenV01", function () {
         this.domain,
         vcTypes,
         this.verifiableCredential,
-        signature
+        proofValue
       )
     ).to.equal(this.accounts[1]);
 
-    let proofValue = await ethers.utils.splitSignature(signature);
     /*
     console.log(this.domain);
     console.log(this.verifiableCredential);
@@ -312,14 +301,10 @@ describe("KRBTokenV01", function () {
     */
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
     await expect(
-      await this.krbTokenSubject.registerVC({
-        vc: this.verifiableCredential,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
+      await this.krbTokenSubject.registerVC(
+        this.verifiableCredential,
+        proofValue
+      )
     ).to.emit(this.krbToken, "Issued");
     //.withArgs(uuid, this.verifiableCredential);
     expect(await this.krbToken.getVCStatus(this.verifiableCredential)).to.equal(
@@ -334,22 +319,14 @@ describe("KRBTokenV01", function () {
   });
 
   it("registerVC already issued", async function () {
-    let signature = await this.issuer._signTypedData(
+    let proofValue = await this.issuer._signTypedData(
       this.domain,
       vcTypes,
       this.verifiableCredential
     );
-    let proofValue = await ethers.utils.splitSignature(signature);
 
     await expect(
-      this.krbTokenSubject.registerVC({
-        vc: this.verifiableCredential,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue)
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
     );
@@ -380,22 +357,14 @@ describe("KRBTokenV01", function () {
   });
 
   it("registerVC already revoked", async function () {
-    let signature = await this.issuer._signTypedData(
+    let proofValue = await this.issuer._signTypedData(
       this.domain,
       vcTypes,
       this.verifiableCredential
     );
-    let proofValue = await ethers.utils.splitSignature(signature);
 
     await expect(
-      this.krbTokenSubject.registerVC({
-        vc: this.verifiableCredential,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue)
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
     );
@@ -408,8 +377,10 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() + 3);
 
     let vc = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
       id: "ceramic://doc2",
-      anchorCommit: "123456",
+      _type: "123456",
       issuer: {
         id: "did:issuer",
         ethereumAddress: this.accounts[1],
@@ -417,31 +388,30 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "fullName",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
     };
 
-    let signature = await this.issuer._signTypedData(this.domain, vcTypes, vc);
-    let proofValue = await ethers.utils.splitSignature(signature);
+    let proofValue = await this.issuer._signTypedData(this.domain, vcTypes, vc);
 
     //Issue
-    await expect(
-      this.krbTokenSubject.registerVC({
-        vc: vc,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
-    ).to.emit(this.krbToken, "Issued");
+    await expect(this.krbTokenSubject.registerVC(vc, proofValue)).to.emit(
+      this.krbToken,
+      "Issued"
+    );
     expect(await this.krbToken.getVCStatus(vc)).to.equal("Issued");
     expect(
       (await this.krbToken.balanceOf(this.accounts[2])).toString()
@@ -471,8 +441,11 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() + 3);
 
     let vc = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
+
       id: "ceramic://doc3",
-      anchorCommit: "12345",
+      _type: "12345",
       issuer: {
         id: "did:issuer",
         ethereumAddress: this.accounts[1],
@@ -480,31 +453,30 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "fullName",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
     };
 
-    let signature = await this.issuer._signTypedData(this.domain, vcTypes, vc);
-    let proofValue = await ethers.utils.splitSignature(signature);
+    let proofValue = await this.issuer._signTypedData(this.domain, vcTypes, vc);
 
     //Issue
-    await expect(
-      this.krbTokenSubject.registerVC({
-        vc: vc,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
-    ).to.emit(this.krbToken, "Issued");
+    await expect(this.krbTokenSubject.registerVC(vc, proofValue)).to.emit(
+      this.krbToken,
+      "Issued"
+    );
     expect(await this.krbToken.getVCStatus(vc)).to.equal("Issued");
     expect(
       (await this.krbToken.balanceOf(this.accounts[2])).toString()
@@ -534,8 +506,11 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() - 1);
 
     let vc = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
+
       id: "ceramic://doc4",
-      anchorCommit: "12345",
+      _type: "12345",
       issuer: {
         id: "did:issuer",
         ethereumAddress: this.accounts[1],
@@ -543,30 +518,28 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "fullName",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
     };
 
-    let signature = await this.issuer._signTypedData(this.domain, vcTypes, vc);
-    let proofValue = await ethers.utils.splitSignature(signature);
+    let proofValue = await this.issuer._signTypedData(this.domain, vcTypes, vc);
 
     //Issue
     await expect(
-      this.krbTokenSubject.registerVC({
-        vc: vc,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
+      this.krbTokenSubject.registerVC(vc, proofValue)
     ).to.be.revertedWith("KRBToken: VC has already expired");
     expect(await this.krbToken.getVCStatus(vc)).to.equal("None");
 
@@ -585,8 +558,11 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() + 3);
 
     let vc = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
+
       id: "ceramic://doc5",
-      anchorCommit: "12345",
+      _type: "12345",
       issuer: {
         id: "did:issuer",
         ethereumAddress: this.accounts[1],
@@ -594,31 +570,30 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "fullName",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
     };
 
-    let signature = await this.issuer._signTypedData(this.domain, vcTypes, vc);
-    let proofValue = await ethers.utils.splitSignature(signature);
+    let proofValue = await this.issuer._signTypedData(this.domain, vcTypes, vc);
 
     //Issue
-    await expect(
-      this.krbTokenSubject.registerVC({
-        vc: vc,
-        proof: {
-          v: proofValue.v,
-          r: proofValue.r,
-          s: proofValue.s,
-        },
-      })
-    ).to.emit(this.krbToken, "Issued");
+    await expect(this.krbTokenSubject.registerVC(vc, proofValue)).to.emit(
+      this.krbToken,
+      "Issued"
+    );
     expect(await this.krbToken.getVCStatus(vc)).to.equal("Issued");
     expect(
       (await this.krbToken.balanceOf(this.accounts[2])).toString()
@@ -630,24 +605,33 @@ describe("KRBTokenV01", function () {
     let uuid = await this.krbToken.getUuid(vc);
 
     let disputeVC = {
+      _context:
+        "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
+
       id: "ceramic://doc6",
-      anchorCommit: "12345",
+      _type: "DisputeCredential",
       issuer: {
         id: "did:govern",
         ethereumAddress: this.accounts[0],
       },
       credentialSubject: {
-        id: uuid,
-        ethereumAddress: this.accounts[1],
+        id: "did:user",
+        ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
       },
-      claimType: "DisputeCredential",
-      claimHash:
-        "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
-      issuanceDate: Math.floor(issuanceDate / 1000),
-      expirationDate: Math.floor(expirationDate.getTime() / 1000),
-      trust: 50,
-      stake: 6,
-      actionByte: 1,
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
     };
 
     //Dispute

@@ -9,78 +9,56 @@ https://www.w3.org/TR/vc-data-model
 pragma solidity ^0.8.0;
 
 library VCTypesV01 {
-    // bytes32 private constant DID_TYPEHASH = keccak256("DID(string id,address ethereumAddress)")
-    bytes32 private constant DID_TYPEHASH =
-        0x304f3eff6220233b75d7dc77d27667479afb7c7142d792a0764be0316759ca5f;
+    // bytes32 private constant ISSUER_TYPEHASH = keccak256("Issuer(string id,address ethereumAddress)")
+    bytes32 private constant ISSUER_TYPEHASH =
+        0xabb691e6e52ceb1ff8b3df91dc14323057e88efa3252486ed994fd62706cdfaa;
     // bytes32 private constant SIGNATURE_TYPEHASH = keccak256("Signature(uint8 v,bytes32 r,bytes32 s)")
     bytes32 private constant SIGNATURE_TYPEHASH =
         0xcea59b5eccb60256d918b7a2e778f6161148c37e6dada57c32e20db10c50b631;
-    // bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH = keccak256("VerifiableCredential(string id,string anchorCommit,DID issuer,DID credentialSubject,string claimType,string claimHash,uint256 issuanceDate,uint256 expirationDate,uint8 trust,uint256 stake,uint8 actionByte)DID(string id,address ethereumAddress)")
+    // bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH = keccak256("VerifiableCredential(string _context,string _type,string id,Issuer issuer,CredentialSubject credentialSubject,CredentialSchema credentialSchema,string issuanceDate,string expirationDate)CredentialSchema(string id,string _type)CredentialSubject(string id,address ethereumAddress,string _type,string value,string encrypted,uint8 trust,uint256 stake,uint256 nbf,uint256 exp)Issuer(string id,address ethereumAddress)")
     bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH =
-        0x7e68611f408624477ff4977f9c2c492993b2407a8a699b96906609c0db8bee98;
-    //bytes32 private constant VERIFIABLE_PRESENTATION_TYPEHASH = keccak256("VerifiablePresentation(VerifiableCredential vc,Signature proof)VerifiableCredential(string id,string anchorCommit,DID issuer,DID credentialSubject,string claimType,string claimHash,uint256 issuanceDate,uint256 expirationDate,uint8 trust,uint256 stake,uint8 actionByte)DID(string id,address ethereumAddress)Signature(uint8 v,bytes32 r,bytes32 s)")
-    bytes32 private constant VERIFIABLE_PRESENTATION_TYPEHASH =
-        0x408b37d8702862c926116f9cd5d43aba52487eb81d17b3120d2873d13e134970;
+        0xbe684d190ad65920edc3ded7384f6a383db54390d51a4039cd9804738787aa73;
+    // bytes32 private constant CREDENTIAL_SCHEMA_TYPEHASH = keccak256("CredentialSchema(string id,string _type)")
+    bytes32 private constant CREDENTIAL_SCHEMA_TYPEHASH =
+        0x1a58b7c56676b62343f37f4f3603a07ae6dd78bea300689bcefef0f9498c6cc9;
+    // bytes32 private constant CREDENTIAL_SUBJECT_TYPEHASH = keccak256("CredentialSubject(string id,address ethereumAddress,string _type,string value,string encrypted,uint8 trust,uint256 stake,uint256 nbf,uint256 exp)")
+    bytes32 private constant CREDENTIAL_SUBJECT_TYPEHASH =
+        0x21b75bdb9e47bcd33a79c50900ab5c955f98112af76c96fd28afba4ed7457c28;
 
-    /**
-     * @param v The recovery ID.
-     * @param r The x-coordinate of the nonce R.
-     * @param s The signature data.
-     */
-    struct Signature {
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
-
-    struct DID {
+    struct Issuer {
         string id;
         address ethereumAddress;
     }
 
-    struct VerifiableCredential {
+    struct CredentialSubject {
         string id;
-        string anchorCommit;
-        DID issuer;
-        DID credentialSubject;
-        string claimType;
-        string claimHash;
-        uint256 issuanceDate;
-        uint256 expirationDate;
+        address ethereumAddress;
+        string _type;
+        string value;
+        string encrypted;
         uint8 trust; // 0 to 10
         uint256 stake; // minStakeToIssue - maxStakeToIssue
-        uint8 actionByte;
+        uint256 nbf;
+        uint256 exp;
     }
 
-    struct VerifiablePresentation {
-        VerifiableCredential vc;
-        Signature proof; //issuer signature
+    struct CredentialSchema {
+        string id;
+        string _type;
     }
 
-    uint8 constant ACTION_ISSUE = 0x01;
-    uint8 constant ACTION_REVOKE = 0x02;
-    uint8 constant ACTION_SUSPEND = 0x03;
-    uint8 constant ACTION_DELETE = 0x04;
-
-    function _getDID(DID memory identity) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    DID_TYPEHASH,
-                    keccak256(bytes(identity.id)),
-                    identity.ethereumAddress
-                )
-            );
+    struct VerifiableCredential {
+        string _context;
+        string _type;
+        string id;
+        Issuer issuer;
+        CredentialSubject credentialSubject;
+        CredentialSchema credentialSchema;
+        string issuanceDate;
+        string expirationDate;
     }
 
-    function _getProof(Signature memory proof) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(SIGNATURE_TYPEHASH, proof.v, proof.r, proof.s)
-            );
-    }
-
-    function getVerifiablePresentation(VerifiablePresentation memory vp)
+    function _getIssuer(Issuer memory identity)
         internal
         pure
         returns (bytes32)
@@ -88,9 +66,46 @@ library VCTypesV01 {
         return
             keccak256(
                 abi.encode(
-                    VERIFIABLE_PRESENTATION_TYPEHASH,
-                    getVerifiableCredential(vp.vc),
-                    _getProof(vp.proof)
+                    ISSUER_TYPEHASH,
+                    keccak256(bytes(identity.id)),
+                    identity.ethereumAddress
+                )
+            );
+    }
+
+    function _getCredentialSubject(CredentialSubject memory credentialSubject)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return
+            keccak256(
+                abi.encode(
+                    CREDENTIAL_SUBJECT_TYPEHASH,
+                    keccak256(bytes(credentialSubject.id)),
+                    credentialSubject.ethereumAddress,
+                    keccak256(bytes(credentialSubject._type)),
+                    keccak256(bytes(credentialSubject.value)),
+                    keccak256(bytes(credentialSubject.encrypted)),
+                    credentialSubject.trust,
+                    credentialSubject.stake,
+                    credentialSubject.nbf,
+                    credentialSubject.exp
+                )
+            );
+    }
+
+    function _getCredentialSchema(CredentialSchema memory credentialSchema)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return
+            keccak256(
+                abi.encode(
+                    CREDENTIAL_SCHEMA_TYPEHASH,
+                    keccak256(bytes(credentialSchema.id)),
+                    keccak256(bytes(credentialSchema._type))
                 )
             );
     }
@@ -104,89 +119,14 @@ library VCTypesV01 {
             keccak256(
                 abi.encode(
                     VERIFIABLE_CREDENTIAL_TYPEHASH,
+                    keccak256(bytes(vc._context)),
+                    keccak256(bytes(vc._type)),
                     keccak256(bytes(vc.id)),
-                    keccak256(bytes(vc.anchorCommit)),
-                    _getDID(vc.issuer),
-                    _getDID(vc.credentialSubject),
-                    keccak256(bytes(vc.claimType)),
-                    keccak256(bytes(vc.claimHash)),
-                    vc.issuanceDate,
-                    vc.expirationDate,
-                    vc.trust,
-                    vc.stake,
-                    ACTION_ISSUE
-                )
-            );
-    }
-
-    function getRevokation(VerifiableCredential memory vc)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encode(
-                    VERIFIABLE_CREDENTIAL_TYPEHASH,
-                    keccak256(bytes(vc.id)),
-                    keccak256(bytes(vc.anchorCommit)),
-                    _getDID(vc.issuer),
-                    _getDID(vc.credentialSubject),
-                    keccak256(bytes(vc.claimType)),
-                    keccak256(bytes(vc.claimHash)),
-                    vc.issuanceDate,
-                    vc.expirationDate,
-                    vc.trust,
-                    vc.stake,
-                    ACTION_REVOKE
-                )
-            );
-    }
-
-    function getSuspension(VerifiableCredential memory vc)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encode(
-                    VERIFIABLE_CREDENTIAL_TYPEHASH,
-                    keccak256(bytes(vc.id)),
-                    keccak256(bytes(vc.anchorCommit)),
-                    _getDID(vc.issuer),
-                    _getDID(vc.credentialSubject),
-                    keccak256(bytes(vc.claimType)),
-                    keccak256(bytes(vc.claimHash)),
-                    vc.issuanceDate,
-                    vc.expirationDate,
-                    vc.trust,
-                    vc.stake,
-                    ACTION_SUSPEND
-                )
-            );
-    }
-
-    function getDeletion(VerifiableCredential memory vc)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encode(
-                    VERIFIABLE_CREDENTIAL_TYPEHASH,
-                    keccak256(bytes(vc.id)),
-                    keccak256(bytes(vc.anchorCommit)),
-                    _getDID(vc.issuer),
-                    _getDID(vc.credentialSubject),
-                    keccak256(bytes(vc.claimType)),
-                    keccak256(bytes(vc.claimHash)),
-                    vc.issuanceDate,
-                    vc.expirationDate,
-                    vc.trust,
-                    vc.stake,
-                    ACTION_DELETE
+                    _getIssuer(vc.issuer),
+                    _getCredentialSubject(vc.credentialSubject),
+                    _getCredentialSchema(vc.credentialSchema),
+                    keccak256(bytes(vc.issuanceDate)),
+                    keccak256(bytes(vc.expirationDate))
                 )
             );
     }

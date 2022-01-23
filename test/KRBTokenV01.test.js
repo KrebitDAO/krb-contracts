@@ -3,6 +3,16 @@
 const { ethers, upgrades } = require("hardhat");
 const { expect } = require("chai");
 
+const { TypedMessage } = require("eth-sig-util");
+
+const {
+  EIP712VC,
+  DEFAULT_CONTEXT,
+  EIP712_CONTEXT,
+  DEFAULT_VC_TYPE,
+  getKrebitCredentialTypes,
+} = require("@krebitdao/eip712-vc/");
+
 const vcTypes = {
   VerifiableCredential: [
     { name: "_context", type: "string" },
@@ -647,5 +657,70 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+  });
+
+  it("registerVC with eip712-vc", async function () {
+    // The data to sign
+    let issuanceDate = Date.now();
+    let expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + 3);
+
+    let credential = {
+      _context: [DEFAULT_CONTEXT, EIP712_CONTEXT].join(","),
+      _type: [DEFAULT_VC_TYPE].join(","),
+      id: "https://example.org/person/1234",
+      issuer: {
+        id: "did:issuer",
+        ethereumAddress: this.accounts[1],
+      },
+      credentialSubject: {
+        id: "did:user",
+        ethereumAddress: this.accounts[2],
+        _type: "fullName",
+        value: "encrypted",
+        encrypted:
+          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        trust: 50,
+        stake: 6,
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
+      },
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        _type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
+    };
+
+    let krebitTypes = getKrebitCredentialTypes();
+
+    let eip712vc = new EIP712VC(this.domain);
+
+    const vc = await eip712vc.createEIP712VerifiableCredential(
+      credential,
+      krebitTypes,
+      async (data) => {
+        return await this.issuer._signTypedData(
+          this.domain,
+          krebitTypes,
+          credential
+        );
+      }
+    );
+
+    //console.log(vc);
+
+    //Issue
+    await expect(
+      this.krbTokenSubject.registerVC(credential, vc.proof.proofValue)
+    ).to.emit(this.krbToken, "Issued");
+    expect(await this.krbToken.getVCStatus(vc)).to.equal("Issued");
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[2])).toString()
+    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[1])).toString()
+    ).to.equal((200 * 10 ** 18).toString()); // 200 KRB
   });
 });

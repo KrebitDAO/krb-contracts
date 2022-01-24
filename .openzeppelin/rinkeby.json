@@ -2,15 +2,15 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0x3eD15a303b8B150BF0bBa8Ad4aE5a0627655F3D6",
-      "txHash": "0x8a4c36aa48be86ea0bbcb62a3a95980a7bc452d751379c45c36b117c6f71e1b8",
+      "address": "0x7567A8eF8AECdb98504eBB8fb9B1e9Ff14dE7384",
+      "txHash": "0xb3d3fece1f235827987bb3eb427762f784af08b1a5638386cdafe0801f2ea1a8",
       "kind": "uups"
     }
   ],
   "impls": {
-    "45db36367439fb98e4e10b16ad073e48377c55c6bb561fb96297772588254117": {
-      "address": "0xee524d0b396C8F9BcfD7Ac336d17aa0397a32CbE",
-      "txHash": "0xce8e239b2c886a0b7081086c694ac0072eefa6b9beb4cc831c62c173972d5d53",
+    "877b6c05ed5bb4771657c6b990eec3fe5611c6eb01be50877bde9d1d03a9e1ff": {
+      "address": "0xBb7A6Ddb6ED2089Cc2AB9A67F31c08E702F444b0",
+      "txHash": "0x57417d844c9a16b28064a77778eb10dde9d795f4dd15874a50872c3f0671cf8b",
       "layout": {
         "storage": [
           {
@@ -191,7 +191,7 @@
             "contract": "KRBTokenV01",
             "label": "__gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "contracts/KRBTokenV01.sol:806"
+            "src": "contracts/KRBTokenV01.sol:717"
           }
         ],
         "types": {

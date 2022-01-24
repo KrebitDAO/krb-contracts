@@ -32,6 +32,7 @@ const vcTypes = {
     { name: "id", type: "string" },
     { name: "ethereumAddress", type: "address" },
     { name: "_type", type: "string" },
+    { name: "typeSchema", type: "string" },
     { name: "value", type: "string" },
     { name: "encrypted", type: "string" },
     { name: "trust", type: "uint8" },
@@ -98,6 +99,7 @@ describe("KRBTokenV01", function () {
         id: "did:user",
         ethereumAddress: this.accounts[2],
         _type: "fullName",
+        typeSchema: "ceramic://def",
         value: "encrypted",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
@@ -399,6 +401,7 @@ describe("KRBTokenV01", function () {
         id: "did:user",
         ethereumAddress: this.accounts[2],
         _type: "fullName",
+        typeSchema: "ceramic://def",
         value: "encrypted",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
@@ -464,6 +467,7 @@ describe("KRBTokenV01", function () {
         id: "did:user",
         ethereumAddress: this.accounts[2],
         _type: "fullName",
+        typeSchema: "ceramic://def",
         value: "encrypted",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
@@ -529,6 +533,7 @@ describe("KRBTokenV01", function () {
         id: "did:user",
         ethereumAddress: this.accounts[2],
         _type: "fullName",
+        typeSchema: "ceramic://def",
         value: "encrypted",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
@@ -582,6 +587,7 @@ describe("KRBTokenV01", function () {
         ethereumAddress: this.accounts[2],
         _type: "fullName",
         value: "encrypted",
+        typeSchema: "ceramic://def",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
@@ -629,6 +635,7 @@ describe("KRBTokenV01", function () {
         ethereumAddress: this.accounts[2],
         _type: "fullName",
         value: "encrypted",
+        typeSchema: "ceramic://def",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
@@ -678,6 +685,7 @@ describe("KRBTokenV01", function () {
         ethereumAddress: this.accounts[2],
         _type: "fullName",
         value: "encrypted",
+        typeSchema: "ceramic://def",
         encrypted:
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,

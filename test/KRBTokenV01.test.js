@@ -37,6 +37,7 @@ const vcTypes = {
     { name: "encrypted", type: "string" },
     { name: "trust", type: "uint8" },
     { name: "stake", type: "uint256" },
+    { name: "price", type: "uint256" },
     { name: "nbf", type: "uint256" },
     { name: "exp", type: "uint256" },
   ],
@@ -105,6 +106,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 100 * 1000,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -169,6 +171,10 @@ describe("KRBTokenV01", function () {
     );
   });
 
+  it("feePercentage", async function () {
+    expect(await this.krbToken.feePercentage()).to.equal((10).toString());
+  });
+
   it("minBalanceToIssue", async function () {
     expect(await this.krbToken.minBalanceToIssue()).to.equal(
       (100 * 10 ** 18).toString()
@@ -196,6 +202,13 @@ describe("KRBTokenV01", function () {
     expect(await this.krbToken.maxStakeToIssue()).to.equal(
       (10 * 10 ** 18).toString()
     );
+  });
+
+  it("updateFeePercentage", async function () {
+    await expect(await this.krbToken.updateFeePercentage((20).toString()))
+      .to.emit(this.krbToken, "Updated")
+      .withArgs("feePercentage");
+    expect(await this.krbToken.feePercentage()).to.equal((20).toString());
   });
 
   it("updateStakeToIssue", async function () {
@@ -310,12 +323,17 @@ describe("KRBTokenV01", function () {
     console.log(this.verifiableCredential);
     console.log(this.accounts);
     console.log(proofValue);
+    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
     */
+
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
     await expect(
       await this.krbTokenSubject.registerVC(
         this.verifiableCredential,
-        proofValue
+        proofValue,
+        {
+          value: 100 * 1000,
+        }
       )
     ).to.emit(this.krbToken, "Issued");
     //.withArgs(uuid, this.verifiableCredential);
@@ -328,6 +346,9 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    expect(
+      (await ethers.provider.getBalance(this.krbToken.address)).toString()
+    ).to.equal((20 * 1000).toString());
   });
 
   it("registerVC already issued", async function () {
@@ -338,7 +359,9 @@ describe("KRBTokenV01", function () {
     );
 
     await expect(
-      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue)
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
+        value: 100 * 1000,
+      })
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
     );
@@ -376,7 +399,9 @@ describe("KRBTokenV01", function () {
     );
 
     await expect(
-      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue)
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
+        value: 100 * 1000,
+      })
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
     );
@@ -407,6 +432,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -473,6 +499,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -539,6 +566,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -592,6 +620,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -640,6 +669,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -690,6 +720,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
+        price: 0,
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },

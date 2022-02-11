@@ -15,15 +15,15 @@ library VCTypesV01 {
     // bytes32 private constant SIGNATURE_TYPEHASH = keccak256("Signature(uint8 v,bytes32 r,bytes32 s)")
     bytes32 private constant SIGNATURE_TYPEHASH =
         0xcea59b5eccb60256d918b7a2e778f6161148c37e6dada57c32e20db10c50b631;
-    // bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH = keccak256("VerifiableCredential(string _context,string _type,string id,Issuer issuer,CredentialSubject credentialSubject,CredentialSchema credentialSchema,string issuanceDate,string expirationDate)CredentialSchema(string id,string _type)CredentialSubject(string id,address ethereumAddress,string _type,string typeSchema,string value,string encrypted,uint8 trust,uint256 stake,uint256 nbf,uint256 exp)Issuer(string id,address ethereumAddress)")
+    // bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH = keccak256("VerifiableCredential(string _context,string _type,string id,Issuer issuer,CredentialSubject credentialSubject,CredentialSchema credentialSchema,string issuanceDate,string expirationDate)CredentialSchema(string id,string _type)CredentialSubject(string id,address ethereumAddress,string _type,string typeSchema,string value,string encrypted,uint8 trust,uint256 stake,uint256 price,uint256 nbf,uint256 exp)Issuer(string id,address ethereumAddress)")
     bytes32 private constant VERIFIABLE_CREDENTIAL_TYPEHASH =
-        0xd08f99e0a0c765460ed3d84d7cd81ee779cd36fe4482875edbf0cf1b7bbe7643;
+        0x63c4847aa3662952b34b8f76f3abc371c24535ee34fce5b3df34d029db924d4e;
     // bytes32 private constant CREDENTIAL_SCHEMA_TYPEHASH = keccak256("CredentialSchema(string id,string _type)")
     bytes32 private constant CREDENTIAL_SCHEMA_TYPEHASH =
         0x1a58b7c56676b62343f37f4f3603a07ae6dd78bea300689bcefef0f9498c6cc9;
-    // bytes32 private constant CREDENTIAL_SUBJECT_TYPEHASH = keccak256("CredentialSubject(string id,address ethereumAddress,string _type,string typeSchema,string value,string encrypted,uint8 trust,uint256 stake,uint256 nbf,uint256 exp)")
+    // bytes32 private constant CREDENTIAL_SUBJECT_TYPEHASH = keccak256("CredentialSubject(string id,address ethereumAddress,string _type,string typeSchema,string value,string encrypted,uint8 trust,uint256 stake,uint256 price,uint256 nbf,uint256 exp)")
     bytes32 private constant CREDENTIAL_SUBJECT_TYPEHASH =
-        0xaf8ffd45fe225114f6754d57001b86eb6836e12ec2d55df7d38142957d912d85;
+        0x4b87db6c5998f503ac6519b5a7d74efcf2a230368deeaf54dd8bf078da459ff7;
 
     struct Issuer {
         string id;
@@ -39,6 +39,7 @@ library VCTypesV01 {
         string encrypted;
         uint8 trust; // 0 to 10
         uint256 stake; // minStakeToIssue - maxStakeToIssue
+        uint256 price; // wei
         uint256 nbf;
         uint256 exp;
     }
@@ -91,6 +92,7 @@ library VCTypesV01 {
                     keccak256(bytes(credentialSubject.encrypted)),
                     credentialSubject.trust,
                     credentialSubject.stake,
+                    credentialSubject.price,
                     credentialSubject.nbf,
                     credentialSubject.exp
                 )

@@ -52,15 +52,16 @@ contract KRBTokenV01 is
     uint256 public minBalanceToTransfer;
     // Min Balance to Receive
     uint256 public minBalanceToReceive;
+
     // Min Balance to Issue Verifiable Credentials
     uint256 public minBalanceToIssue;
     // Min Stake to Issue Verifiable Credentials
     uint256 public minStakeToIssue;
     // Max Stake to Issue Verifiable Credentials
     uint256 public maxStakeToIssue;
-    // Trust range to issue Verifiable Credentials
-    uint256 constant MIN_TRUST = 0;
-    uint256 constant MAX_TRUST = 100;
+    // Fee to Issue Verifiable Credentials
+    uint256 public feePercentage;
+    uint256 public feesAvailableForWithdraw; //wei
 
     event Updated(string change);
 
@@ -126,6 +127,8 @@ contract KRBTokenV01 is
 
         minBalanceToTransfer = 100 * 10**decimals(); // 100 KRB
         minBalanceToReceive = 100 * 10**decimals(); // 100 KRB
+
+        feePercentage = 10; // 10 %
 
         minBalanceToIssue = 100 * 10**decimals(); // 100 KRB
 
@@ -335,6 +338,28 @@ contract KRBTokenV01 is
     }
 
     /**
+     * @dev Updates `feePercentage` to `newFeePercentage`.
+     *
+     * See http://docs.krebit.co
+     *
+     * Requirements:
+     *
+     * - the caller must have the `GOVERN_ROLE`.
+     */
+    function updateFeePercentage(uint256 newFeePercentage) public {
+        require(
+            hasRole(GOVERN_ROLE, _msgSender()),
+            "KRBToken: must have govern role to change feePercentage"
+        );
+        require(
+            newFeePercentage >= 0 || newFeePercentage <= 100,
+            "KRBToken: bad percentage value"
+        );
+        feePercentage = newFeePercentage;
+        emit Updated("feePercentage");
+    }
+
+    /**
      * @dev Updates `minBalanceToIssue` to `newMinBalance`.
      *
      * See http://docs.krebit.co
@@ -398,9 +423,9 @@ contract KRBTokenV01 is
             "KRBToken: bad credentialSubject address"
         );
         require(
-            vc.credentialSubject.trust >= MIN_TRUST ||
-                vc.credentialSubject.trust <= MAX_TRUST,
-            "KRBToken: bad trust value"
+            vc.credentialSubject.trust >= 0 ||
+                vc.credentialSubject.trust <= 100,
+            "KRBToken: bad trust percentage value"
         );
         require(
             keccak256(abi.encodePacked(vc.issuer.id)) !=
@@ -441,7 +466,22 @@ contract KRBTokenV01 is
         return
             SafeMathUpgradeable.div(
                 SafeMathUpgradeable.mul(_stake, _trust),
-                MAX_TRUST
+                100
+            );
+    }
+
+    /**
+     * @dev Calculates the ETH fee as percentage of price
+     * Formula:  fee = price * feePercentage %
+     *
+     * See http://docs.krebit.co
+     *
+     */
+    function _getFee(uint256 _price) internal view returns (uint256) {
+        return
+            SafeMathUpgradeable.div(
+                SafeMathUpgradeable.mul(_price, feePercentage),
+                100
             );
     }
 
@@ -505,6 +545,11 @@ contract KRBTokenV01 is
         uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
         _mint(vc.credentialSubject.ethereumAddress, _reward);
         _mint(vc.issuer.ethereumAddress, _reward);
+
+        uint256 _fee = _getFee(vc.credentialSubject.price);
+        address payable issuer = payable(vc.issuer.ethereumAddress);
+        issuer.transfer(msg.value - _fee);
+        feesAvailableForWithdraw += _fee;
 
         return true;
     }
@@ -608,10 +653,14 @@ contract KRBTokenV01 is
     function registerVC(
         VCTypesV01.VerifiableCredential memory vc,
         bytes memory proofValue
-    ) public returns (bool) {
+    ) public payable returns (bool) {
         require(
             vc.credentialSubject.ethereumAddress == _msgSender(),
             "KRBToken: sender must be the credentialSubject address"
+        );
+        require(
+            vc.credentialSubject.price == msg.value,
+            "KRBToken: msg.value does not match credentialSubject.price"
         );
 
         _issueVCWithAuthorization(vc, proofValue);
@@ -712,6 +761,19 @@ contract KRBTokenV01 is
         _burn(vc.issuer.ethereumAddress, _reward);
 
         return true;
+    }
+
+    /**
+     * Withdraw fees collected by the contract. Only the govern can call this.
+     */
+    function withdrawFees(address payable _to, uint256 _amount) external {
+        require(
+            hasRole(GOVERN_ROLE, _msgSender()),
+            "KRBToken: must have govern role to withdraw"
+        );
+        require(_amount <= feesAvailableForWithdraw); // Also prevents underflow
+        feesAvailableForWithdraw -= _amount;
+        _to.transfer(_amount);
     }
 
     uint256[50] private __gap;

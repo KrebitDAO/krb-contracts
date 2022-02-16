@@ -11,6 +11,7 @@ const {
   EIP712_CONTEXT,
   DEFAULT_VC_TYPE,
   getKrebitCredentialTypes,
+  getEIP712Credential,
 } = require("@krebitdao/eip712-vc/");
 
 const vcTypes = {
@@ -654,7 +655,7 @@ describe("KRBTokenV01", function () {
         "https://www.w3.org/2018/credentials/v1,https://raw.githubusercontent.com/w3c-ccg/ethereum-eip712-proofValue-2021-spec/main/contexts/v1/index.json",
 
       id: "ceramic://doc6",
-      _type: "DisputeCredential",
+      _type: JSON.stringify(["VerifiableCredential", "DisputeCredential"]),
       issuer: {
         id: "did:govern",
         ethereumAddress: this.accounts[0],
@@ -703,8 +704,8 @@ describe("KRBTokenV01", function () {
     expirationDate.setFullYear(expirationDate.getFullYear() + 3);
 
     let credential = {
-      _context: [DEFAULT_CONTEXT, EIP712_CONTEXT].join(","),
-      _type: [DEFAULT_VC_TYPE].join(","),
+      "@context": [DEFAULT_CONTEXT, EIP712_CONTEXT],
+      type: [DEFAULT_VC_TYPE],
       id: "https://example.org/person/1234",
       issuer: {
         id: "did:issuer",
@@ -713,7 +714,7 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "did:user",
         ethereumAddress: this.accounts[2],
-        _type: "fullName",
+        type: "fullName",
         value: "encrypted",
         typeSchema: "ceramic://def",
         encrypted:
@@ -726,24 +727,27 @@ describe("KRBTokenV01", function () {
       },
       credentialSchema: {
         id: "https://krebit.id/schemas/v1",
-        _type: "Eip712SchemaValidator2021",
+        type: "Eip712SchemaValidator2021",
       },
       issuanceDate: new Date(issuanceDate).toISOString(),
       expirationDate: new Date(expirationDate).toISOString(),
     };
+
+    let eip712credential = getEIP712Credential(credential);
+    //console.log("eip712credential:", eip712credential);
 
     let krebitTypes = getKrebitCredentialTypes();
 
     let eip712vc = new EIP712VC(this.domain);
 
     const vc = await eip712vc.createEIP712VerifiableCredential(
-      credential,
+      eip712credential,
       krebitTypes,
       async (data) => {
         return await this.issuer._signTypedData(
           this.domain,
           krebitTypes,
-          credential
+          eip712credential
         );
       }
     );
@@ -752,9 +756,11 @@ describe("KRBTokenV01", function () {
 
     //Issue
     await expect(
-      this.krbTokenSubject.registerVC(credential, vc.proof.proofValue)
+      this.krbTokenSubject.registerVC(eip712credential, vc.proof.proofValue)
     ).to.emit(this.krbToken, "Issued");
-    expect(await this.krbToken.getVCStatus(vc)).to.equal("Issued");
+    expect(await this.krbToken.getVCStatus(eip712credential)).to.equal(
+      "Issued"
+    );
     expect(
       (await this.krbToken.balanceOf(this.accounts[2])).toString()
     ).to.equal((3 * 10 ** 18).toString()); // 3 KRB

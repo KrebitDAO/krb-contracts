@@ -721,7 +721,11 @@ contract KRBTokenV01 is
         );
         require(
             keccak256(abi.encodePacked(disputeVC._type)) ==
-                keccak256(abi.encodePacked("DisputeCredential")),
+                keccak256(
+                    abi.encodePacked(
+                        '["VerifiableCredential","DisputeCredential"]'
+                    )
+                ),
             "KRBToken: dispute claim type must be DisputeCredential"
         );
         require(

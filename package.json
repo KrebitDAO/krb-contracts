@@ -4,7 +4,8 @@
   "description": "Krebit Ethereum Contracts for EIP712 Verified Credentials",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "doc": "npx solidity-docgen --solc-module solc-0.8 -t ./templates"
   },
   "repository": {
     "type": "git",
@@ -35,6 +36,8 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
     "eth-sig-util": "^2.5.4",
-    "ethereum-waffle": "^3.4.0"
+    "ethereum-waffle": "^3.4.0",
+    "solc-0.8": "npm:solc@^0.8.12",
+    "solidity-docgen": "^0.5.16"
   }
 }

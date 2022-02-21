@@ -1,10 +1,10 @@
 # <img src="krebit-icon.png" alt="Krebit" height="40px" align="left"> Krebit Contracts
 
-[![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://docs.krebit.co)
+[![Docs](https://img.shields.io/badge/docs-%F0%9F%93%84-blue)](https://docs.krebit.id)
 
 This repository hosts the [Krebit] protocol contracts, based on [OpenZeppelin Contracts].
 
-[krebit]: http://krebit.co
+[krebit]: http://krebit.id
 [openzeppelin contracts]: https://github.com/OpenZeppelin/openzeppelin-contracts
 
 It follows all of the rules for [Writing Upgradeable Contracts]: constructors are replaced by initializer functions, state variables are initialized in initializer functions, and we additionally check for storage incompatibilities across minor versions.

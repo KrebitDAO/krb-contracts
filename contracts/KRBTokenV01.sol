@@ -155,8 +155,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Updates `minBalanceToTransfer` to `newMinBalance`.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -173,8 +172,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Updates `minBalanceToReceive` to `newMinBalance`.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -191,8 +189,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Checks min balances before Issue / Mint / Transfer.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -339,8 +336,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Updates `feePercentage` to `newFeePercentage`.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -361,8 +357,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Updates `minBalanceToIssue` to `newMinBalance`.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -379,8 +374,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Updates `minStakeToIssue` and `maxStakeToIssue`.
-     *
-     * See http://docs.krebit.co
+
      *
      * Requirements:
      *
@@ -406,8 +400,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Validates that the `VerifiableCredential` conforms to the Krebit Protocol.
-     *
-     * See http://docs.krebit.co
+
      *
      */
     function _validateVC(VCTypesV01.VerifiableCredential memory vc)
@@ -453,8 +446,7 @@ contract KRBTokenV01 is
     /**
      * @dev Calculates the KRB reward as defined by tht Krebit Protocol
      * Formula:  Krebit = Risk * Trust %
-     *
-     * See http://docs.krebit.co
+
      *
      */
     function _getReward(uint256 _stake, uint256 _trust)
@@ -473,8 +465,7 @@ contract KRBTokenV01 is
     /**
      * @dev Calculates the ETH fee as percentage of price
      * Formula:  fee = price * feePercentage %
-     *
-     * See http://docs.krebit.co
+
      *
      */
     function _getFee(uint256 _price) internal view returns (uint256) {
@@ -487,8 +478,7 @@ contract KRBTokenV01 is
 
     /**
      * @dev Validates that the `VerifiableCredential` conforms to the VCTypes.
-     *
-     * See http://docs.krebit.co
+
      *
      */
     function getUuid(VCTypesV01.VerifiableCredential memory vc)

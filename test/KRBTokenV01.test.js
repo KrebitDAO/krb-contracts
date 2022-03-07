@@ -107,7 +107,7 @@ describe("KRBTokenV01", function () {
           "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
         trust: 50,
         stake: 6,
-        price: 100 * 1000,
+        price: ethers.utils.parseEther("0.0001").toString(),
         nbf: Math.floor(issuanceDate / 1000),
         exp: Math.floor(expirationDate.getTime() / 1000),
       },
@@ -174,6 +174,25 @@ describe("KRBTokenV01", function () {
 
   it("feePercentage", async function () {
     expect(await this.krbToken.feePercentage()).to.equal((10).toString());
+  });
+
+  it("minPriceToIssue", async function () {
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0.0001").toString()
+    );
+  });
+
+  it("updateMinPriceToIssue", async function () {
+    await expect(
+      await this.krbToken.updateMinPriceToIssue(
+        ethers.utils.parseEther("0.0002").toString()
+      )
+    )
+      .to.emit(this.krbToken, "Updated")
+      .withArgs("minPriceToIssue");
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0.0002").toString()
+    );
   });
 
   it("minBalanceToIssue", async function () {
@@ -303,6 +322,110 @@ describe("KRBTokenV01", function () {
     ).to.be.revertedWith("KRBToken: state is not Issued");
   });
 
+  it("registerVC with less price", async function () {
+    let proofValue = await this.issuer._signTypedData(
+      this.domain,
+      vcTypes,
+      this.verifiableCredential
+    );
+
+    expect(
+      await ethers.utils.verifyTypedData(
+        this.domain,
+        vcTypes,
+        this.verifiableCredential,
+        proofValue
+      )
+    ).to.equal(this.accounts[1]);
+
+    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
+    //console.log(issuerBalance);
+
+    let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    await expect(
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
+        value: ethers.utils.parseEther("0.0001").toString(),
+      })
+    ).to.be.revertedWith(
+      "KRBToken: msg.value must be greater than minPriceToIssue"
+    );
+  });
+
+  it("registerVC with wrong price", async function () {
+    let proofValue = await this.issuer._signTypedData(
+      this.domain,
+      vcTypes,
+      this.verifiableCredential
+    );
+
+    expect(
+      await ethers.utils.verifyTypedData(
+        this.domain,
+        vcTypes,
+        this.verifiableCredential,
+        proofValue
+      )
+    ).to.equal(this.accounts[1]);
+
+    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
+    //console.log(issuerBalance);
+
+    let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    await expect(
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
+        value: ethers.utils.parseEther("0.0002").toString(),
+      })
+    ).to.be.revertedWith(
+      "KRBToken: msg.value does not match credentialSubject.price"
+    );
+  });
+
+  it("updateMinPriceToIssue to 0.001 eth", async function () {
+    await expect(
+      await this.krbToken.updateMinPriceToIssue(
+        ethers.utils.parseEther("0.0001").toString()
+      )
+    )
+      .to.emit(this.krbToken, "Updated")
+      .withArgs("minPriceToIssue");
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0.0001").toString()
+    );
+  });
+
+  it("registerVC during pause", async function () {
+    await this.krbToken.pause();
+
+    let proofValue = await this.issuer._signTypedData(
+      this.domain,
+      vcTypes,
+      this.verifiableCredential
+    );
+
+    expect(
+      await ethers.utils.verifyTypedData(
+        this.domain,
+        vcTypes,
+        this.verifiableCredential,
+        proofValue
+      )
+    ).to.equal(this.accounts[1]);
+
+    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
+    //console.log(issuerBalance);
+
+    let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    await expect(
+      this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
+        value: ethers.utils.parseEther("0.0001").toString(),
+      })
+    ).to.be.revertedWith("ERC20Pausable: token transfer while paused");
+  });
+
+  it("unpause", async function () {
+    await this.krbToken.unpause();
+  });
+
   it("registerVC", async function () {
     let proofValue = await this.issuer._signTypedData(
       this.domain,
@@ -324,8 +447,10 @@ describe("KRBTokenV01", function () {
     console.log(this.verifiableCredential);
     console.log(this.accounts);
     console.log(proofValue);
-    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
     */
+
+    let issuerBalance = await ethers.provider.getBalance(this.accounts[1]);
+    //console.log(issuerBalance);
 
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
     await expect(
@@ -333,7 +458,7 @@ describe("KRBTokenV01", function () {
         this.verifiableCredential,
         proofValue,
         {
-          value: 100 * 1000,
+          value: ethers.utils.parseEther("0.0001").toString(), // gwei = 0.0001 ETH
         }
       )
     ).to.emit(this.krbToken, "Issued");
@@ -346,10 +471,16 @@ describe("KRBTokenV01", function () {
     ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
-    ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
+    /*expect(
+      (await ethers.provider.getBalance(this.accounts[1])).toString()
+    ).to.equal((issuerBalance + 80 * 1000).toString());*/
     expect(
       (await ethers.provider.getBalance(this.krbToken.address)).toString()
-    ).to.equal((20 * 1000).toString());
+    ).to.equal(ethers.utils.parseEther("0.00002").toString());
   });
 
   it("registerVC already issued", async function () {
@@ -361,7 +492,7 @@ describe("KRBTokenV01", function () {
 
     await expect(
       this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
-        value: 100 * 1000,
+        value: ethers.utils.parseEther("0.0001").toString(),
       })
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
@@ -390,6 +521,9 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((200 * 10 ** 18).toString()); // 200 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (0 * 10 ** 18).toString()
+    ); // 0 KRB
   });
 
   it("registerVC already revoked", async function () {
@@ -401,10 +535,23 @@ describe("KRBTokenV01", function () {
 
     await expect(
       this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
-        value: 100 * 1000,
+        value: ethers.utils.parseEther("0.0001").toString(),
       })
     ).to.be.revertedWith(
       "KRBToken: Verifiable Credential hash already been issued"
+    );
+  });
+
+  it("updateMinPriceToIssue to 0 eth", async function () {
+    await expect(
+      await this.krbToken.updateMinPriceToIssue(
+        ethers.utils.parseEther("0").toString()
+      )
+    )
+      .to.emit(this.krbToken, "Updated")
+      .withArgs("minPriceToIssue");
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0").toString()
     );
   });
 
@@ -458,7 +605,10 @@ describe("KRBTokenV01", function () {
     ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
-    ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
 
     //Suspend
     let uuid = await this.krbToken.getUuid(vc);
@@ -472,6 +622,9 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (0 * 10 ** 18).toString()
+    ); // 0 KRB
   });
 
   it("deleteVC", async function () {
@@ -525,9 +678,12 @@ describe("KRBTokenV01", function () {
     ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
-    ).to.equal((206 * 10 ** 18).toString()); // 206 KRB
+    ).to.equal((200 * 10 ** 18).toString()); // 200 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
 
-    //Suspend
+    //Delete
     let uuid = await this.krbToken.getUuid(vc);
     await expect(this.krbTokenSubject.deleteVC(vc, "Test Deletion"))
       .to.emit(this.krbToken, "Deleted")
@@ -539,6 +695,9 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (0 * 10 ** 18).toString()
+    ); // 0 KRB
   });
 
   it("expiredVC", async function () {
@@ -593,6 +752,9 @@ describe("KRBTokenV01", function () {
       .to.emit(this.krbToken, "Expired")
       .withArgs(uuid);
     expect(await this.krbToken.getVCStatus(vc)).to.equal("Expired");
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (0 * 10 ** 18).toString()
+    ); // 0 KRB
   });
 
   it("disputeVCByGovern", async function () {
@@ -647,6 +809,9 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((206 * 10 ** 18).toString()); // 206 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
 
     let uuid = await this.krbToken.getUuid(vc);
 
@@ -661,9 +826,9 @@ describe("KRBTokenV01", function () {
         ethereumAddress: this.accounts[0],
       },
       credentialSubject: {
-        id: "did:user",
-        ethereumAddress: this.accounts[2],
-        _type: "fullName",
+        id: "ceramic://doc5",
+        ethereumAddress: this.accounts[3],
+        _type: "disputeCredential",
         value: "encrypted",
         typeSchema: "ceramic://def",
         encrypted:
@@ -694,7 +859,13 @@ describe("KRBTokenV01", function () {
     ).to.equal((0 * 10 ** 18).toString()); // 0 KRB
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
-    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    ).to.equal((203 * 10 ** 18).toString()); // 203 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (0 * 10 ** 18).toString()
+    ); // 0 KRB
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[3])).toString()
+    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
   });
 
   it("registerVC with eip712-vc", async function () {
@@ -767,5 +938,23 @@ describe("KRBTokenV01", function () {
     expect(
       (await this.krbToken.balanceOf(this.accounts[1])).toString()
     ).to.equal((200 * 10 ** 18).toString()); // 200 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
+  });
+
+  it("burn Stake", async function () {
+    await expect(
+      this.krbToken.burnStake(this.accounts[1], (3 * 10 ** 18).toString())
+    )
+      .to.emit(this.krbToken, "Staked")
+      .withArgs(
+        this.accounts[1],
+        ethers.constants.AddressZero,
+        (3 * 10 ** 18).toString() // 100  KRB
+      );
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (3 * 10 ** 18).toString()
+    ); // 3 KRB
   });
 });

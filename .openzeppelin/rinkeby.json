@@ -2,20 +2,15 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0x7567A8eF8AECdb98504eBB8fb9B1e9Ff14dE7384",
-      "txHash": "0xb3d3fece1f235827987bb3eb427762f784af08b1a5638386cdafe0801f2ea1a8",
-      "kind": "uups"
-    },
-    {
-      "address": "0x84a0F5D8132d2e1FC0859Aba800462e43c80c484",
-      "txHash": "0x194a4563a9d49d8daf83d46f89f4b85e4daf3f9735f7cbf750cb96a676630692",
+      "address": "0xA88d4F9ce30031d10817592F18D36363D9B46be8",
+      "txHash": "0x2b3597403b18667c915d0a36c8f5d6acd4971422d070a3b57854194494773cf8",
       "kind": "uups"
     }
   ],
   "impls": {
-    "877b6c05ed5bb4771657c6b990eec3fe5611c6eb01be50877bde9d1d03a9e1ff": {
-      "address": "0xBb7A6Ddb6ED2089Cc2AB9A67F31c08E702F444b0",
-      "txHash": "0x57417d844c9a16b28064a77778eb10dde9d795f4dd15874a50872c3f0671cf8b",
+    "8687e846d8fc9246cb96e95b098f7fb6f4f72ee5eb8838912d5cc1a92ff9b6d1": {
+      "address": "0x38e10ACF3454ec683114815a2E78C28E0CE631E5",
+      "txHash": "0x9f73ebb1e5d88aa51d8ac477e7469c9a0c45dc8c03e8532ccf783887165d4c3f",
       "layout": {
         "storage": [
           {
@@ -160,370 +155,85 @@
             "contract": "KRBTokenV01",
             "label": "minBalanceToTransfer",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:52"
+            "src": "contracts/KRBTokenV01.sol:55"
           },
           {
             "contract": "KRBTokenV01",
             "label": "minBalanceToReceive",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:54"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minBalanceToIssue",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:56"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minStakeToIssue",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:58"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "maxStakeToIssue",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:60"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "registry",
-            "type": "t_mapping(t_bytes32,t_struct(VerifiableData)4250_storage)",
-            "src": "contracts/KRBTokenV01.sol:82"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "contracts/KRBTokenV01.sol:717"
-          }
-        ],
-        "types": {
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_mapping(t_bytes32,t_struct(VerifiableData)4250_storage)": {
-            "label": "mapping(bytes32 => struct KRBTokenV01.VerifiableData)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_struct(VerifiableData)4250_storage": {
-            "label": "struct KRBTokenV01.VerifiableData",
-            "members": [
-              {
-                "label": "credentialStatus",
-                "type": "t_enum(Status)4244"
-              },
-              {
-                "label": "disputedBy",
-                "type": "t_bytes32"
-              }
-            ]
-          },
-          "t_enum(Status)4244": {
-            "label": "enum KRBTokenV01.Status",
-            "members": [
-              "None",
-              "Issued",
-              "Disputed",
-              "Revoked",
-              "Suspended",
-              "Expired"
-            ]
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
-          },
-          "t_mapping(t_address,t_uint256)": {
-            "label": "mapping(address => uint256)"
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
-            "label": "mapping(address => mapping(address => uint256))"
-          },
-          "t_string_storage": {
-            "label": "string"
-          },
-          "t_array(t_uint256)45_storage": {
-            "label": "uint256[45]"
-          },
-          "t_mapping(t_bytes32,t_struct(AddressSet)3897_storage)": {
-            "label": "mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)"
-          },
-          "t_struct(AddressSet)3897_storage": {
-            "label": "struct EnumerableSetUpgradeable.AddressSet",
-            "members": [
-              {
-                "label": "_inner",
-                "type": "t_struct(Set)3596_storage"
-              }
-            ]
-          },
-          "t_struct(Set)3596_storage": {
-            "label": "struct EnumerableSetUpgradeable.Set",
-            "members": [
-              {
-                "label": "_values",
-                "type": "t_array(t_bytes32)dyn_storage"
-              },
-              {
-                "label": "_indexes",
-                "type": "t_mapping(t_bytes32,t_uint256)"
-              }
-            ]
-          },
-          "t_array(t_bytes32)dyn_storage": {
-            "label": "bytes32[]"
-          },
-          "t_mapping(t_bytes32,t_uint256)": {
-            "label": "mapping(bytes32 => uint256)"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)199_storage)": {
-            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
-          },
-          "t_struct(RoleData)199_storage": {
-            "label": "struct AccessControlUpgradeable.RoleData",
-            "members": [
-              {
-                "label": "members",
-                "type": "t_mapping(t_address,t_bool)"
-              },
-              {
-                "label": "adminRole",
-                "type": "t_bytes32"
-              }
-            ]
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)"
-          }
-        }
-      }
-    },
-    "54e96dc74af6a8afa3854367539c360040ed1569caf09526f294abe8bb0fc34f": {
-      "address": "0xeD700949bf80621ca6AC5443bB8033e96b2e93b5",
-      "txHash": "0x6671b149830544e56f2f524347048eac15b7f7fc9c2fab8472bb789aed75b488",
-      "layout": {
-        "storage": [
-          {
-            "contract": "Initializable",
-            "label": "_initialized",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
-          },
-          {
-            "contract": "Initializable",
-            "label": "_initializing",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
-          },
-          {
-            "contract": "ContextUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
-          },
-          {
-            "contract": "ERC165Upgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:36"
-          },
-          {
-            "contract": "AccessControlUpgradeable",
-            "label": "_roles",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)199_storage)",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:64"
-          },
-          {
-            "contract": "AccessControlUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:232"
-          },
-          {
-            "contract": "AccessControlEnumerableUpgradeable",
-            "label": "_roleMembers",
-            "type": "t_mapping(t_bytes32,t_struct(AddressSet)3897_storage)",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol:26"
-          },
-          {
-            "contract": "AccessControlEnumerableUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol:74"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "_balances",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "_allowances",
-            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "_totalSupply",
-            "type": "t_uint256",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "_name",
-            "type": "t_string_storage",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "_symbol",
-            "type": "t_string_storage",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
-          },
-          {
-            "contract": "ERC20Upgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)45_storage",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:362"
-          },
-          {
-            "contract": "ERC20BurnableUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol:51"
-          },
-          {
-            "contract": "PausableUpgradeable",
-            "label": "_paused",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
-          },
-          {
-            "contract": "PausableUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:97"
-          },
-          {
-            "contract": "ERC20PausableUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol:42"
-          },
-          {
-            "contract": "EIP712Upgradeable",
-            "label": "_HASHED_NAME",
-            "type": "t_bytes32",
-            "src": "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:30"
-          },
-          {
-            "contract": "EIP712Upgradeable",
-            "label": "_HASHED_VERSION",
-            "type": "t_bytes32",
-            "src": "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:31"
-          },
-          {
-            "contract": "EIP712Upgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol:112"
-          },
-          {
-            "contract": "ERC1967UpgradeUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:215"
-          },
-          {
-            "contract": "UUPSUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:81"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minBalanceToTransfer",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:52"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minBalanceToReceive",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:54"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minBalanceToIssue",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:57"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "minStakeToIssue",
             "type": "t_uint256",
             "src": "contracts/KRBTokenV01.sol:59"
           },
           {
             "contract": "KRBTokenV01",
-            "label": "maxStakeToIssue",
-            "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:61"
-          },
-          {
-            "contract": "KRBTokenV01",
-            "label": "feePercentage",
+            "label": "minBalanceToIssue",
             "type": "t_uint256",
             "src": "contracts/KRBTokenV01.sol:63"
           },
           {
             "contract": "KRBTokenV01",
+            "label": "minPriceToIssue",
+            "type": "t_uint256",
+            "src": "contracts/KRBTokenV01.sol:67"
+          },
+          {
+            "contract": "KRBTokenV01",
+            "label": "minStakeToIssue",
+            "type": "t_uint256",
+            "src": "contracts/KRBTokenV01.sol:71"
+          },
+          {
+            "contract": "KRBTokenV01",
+            "label": "maxStakeToIssue",
+            "type": "t_uint256",
+            "src": "contracts/KRBTokenV01.sol:75"
+          },
+          {
+            "contract": "KRBTokenV01",
+            "label": "feePercentage",
+            "type": "t_uint256",
+            "src": "contracts/KRBTokenV01.sol:79"
+          },
+          {
+            "contract": "KRBTokenV01",
             "label": "feesAvailableForWithdraw",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:64"
+            "src": "contracts/KRBTokenV01.sol:83"
           },
           {
             "contract": "KRBTokenV01",
             "label": "registry",
-            "type": "t_mapping(t_bytes32,t_struct(VerifiableData)4248_storage)",
-            "src": "contracts/KRBTokenV01.sol:83"
+            "type": "t_mapping(t_bytes32,t_struct(VerifiableData)4262_storage)",
+            "src": "contracts/KRBTokenV01.sol:105"
+          },
+          {
+            "contract": "KRBTokenV01",
+            "label": "stakes",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/KRBTokenV01.sol:110"
           },
           {
             "contract": "KRBTokenV01",
             "label": "__gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "contracts/KRBTokenV01.sol:779"
+            "src": "contracts/KRBTokenV01.sol:1008"
           }
         ],
         "types": {
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_bytes32,t_struct(VerifiableData)4248_storage)": {
+          "t_mapping(t_bytes32,t_struct(VerifiableData)4262_storage)": {
             "label": "mapping(bytes32 => struct KRBTokenV01.VerifiableData)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(VerifiableData)4248_storage": {
+          "t_struct(VerifiableData)4262_storage": {
             "label": "struct KRBTokenV01.VerifiableData",
             "members": [
               {
                 "label": "credentialStatus",
-                "type": "t_enum(Status)4242"
+                "type": "t_enum(Status)4256"
               },
               {
                 "label": "disputedBy",
@@ -531,7 +241,7 @@
               }
             ]
           },
-          "t_enum(Status)4242": {
+          "t_enum(Status)4256": {
             "label": "enum KRBTokenV01.Status",
             "members": [
               "None",
@@ -542,6 +252,12 @@
               "Expired"
             ]
           },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
@@ -550,12 +266,6 @@
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
-          },
-          "t_mapping(t_address,t_uint256)": {
-            "label": "mapping(address => uint256)"
-          },
-          "t_address": {
-            "label": "address"
           },
           "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
             "label": "mapping(address => mapping(address => uint256))"

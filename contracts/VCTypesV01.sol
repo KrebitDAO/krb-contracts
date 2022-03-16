@@ -6,6 +6,8 @@ Implements: W3C verifiable Credentials
 https://www.w3.org/TR/vc-data-model
 */
 
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+
 pragma solidity ^0.8.0;
 
 library VCTypesV01 {
@@ -58,6 +60,68 @@ library VCTypesV01 {
         CredentialSchema credentialSchema;
         string issuanceDate;
         string expirationDate;
+    }
+
+    /**
+     * @dev Validates that the `VerifiableCredential` conforms to the Krebit Protocol.
+
+     *
+     */
+    function validateVC(VerifiableCredential memory vc) internal view {
+        require(
+            vc.issuer.ethereumAddress != address(0),
+            "KRBToken: bad issuer address"
+        );
+        require(
+            vc.credentialSubject.ethereumAddress != address(0),
+            "KRBToken: bad credentialSubject address"
+        );
+        require(
+            vc.credentialSubject.trust >= 0 ||
+                vc.credentialSubject.trust <= 100,
+            "KRBToken: bad trust percentage value"
+        );
+        require(
+            keccak256(abi.encodePacked(vc.issuer.id)) !=
+                keccak256(abi.encodePacked(vc.credentialSubject.id)),
+            "KRBToken: issuer DID is the same as credentialSubject"
+        );
+        require(
+            vc.credentialSubject.price == msg.value,
+            "KRBToken: msg.value does not match credentialSubject.price"
+        );
+        require(
+            vc.issuer.ethereumAddress != vc.credentialSubject.ethereumAddress,
+            "KRBToken: issuer address is the same as credentialSubject"
+        );
+
+        require(
+            block.timestamp > vc.credentialSubject.nbf,
+            "KRBToken: VC issuanceDate is in the future"
+        );
+        require(
+            block.timestamp < vc.credentialSubject.exp,
+            "KRBToken: VC has already expired"
+        );
+    }
+
+    /**
+     * @dev Calculates the KRB reward as defined by tht Krebit Protocol
+     * Formula:  Krebit = Risk * Trust %
+
+     *
+     */
+    function getReward(uint256 _stake, uint256 _trust)
+        internal
+        pure
+        returns (uint256)
+    {
+        //Formula:  Krebit = Risk * Trust %
+        return
+            SafeMathUpgradeable.div(
+                SafeMathUpgradeable.mul(_stake, _trust),
+                100
+            );
     }
 
     function _getIssuer(Issuer memory identity)

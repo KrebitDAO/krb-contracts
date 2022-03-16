@@ -2,6 +2,29 @@
 
 
 ## Functions
+### validateVC
+```solidity
+  function validateVC(
+  ) internal
+```
+
+Validates that the `VerifiableCredential` conforms to the Krebit Protocol.
+
+
+
+
+### getReward
+```solidity
+  function getReward(
+  ) internal returns (uint256)
+```
+
+Calculates the KRB reward as defined by tht Krebit Protocol
+Formula:  Krebit = Risk * Trust %
+
+
+
+
 ### _getIssuer
 ```solidity
   function _getIssuer(

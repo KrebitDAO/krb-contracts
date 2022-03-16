@@ -15,6 +15,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./VCTypesV01.sol";
 
@@ -28,6 +30,8 @@ import "./VCTypesV01.sol";
  * - ERC20BurnableUpgradeable,
  * - ERC20PausableUpgradeable,
  * - EIP712Upgradeable,
+ * - PullPaymentUpgradeable,
+ * - ReentrancyGuardUpgradeable
  *
  * This contract uses {AccessControlEnumerable} to lock permissioned functions using the
  * different roles:
@@ -43,7 +47,9 @@ contract KRBTokenV01 is
     ERC20BurnableUpgradeable,
     ERC20PausableUpgradeable,
     EIP712Upgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    PullPaymentUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     using SafeMathUpgradeable for uint256;
 
@@ -85,7 +91,7 @@ contract KRBTokenV01 is
     /**
      * @dev For config updates
      */
-    event Updated(string change);
+    event Updated();
 
     //// @dev https://www.w3.org/TR/vc-data-model/#status
     enum Status {
@@ -119,7 +125,7 @@ contract KRBTokenV01 is
     event Staked(address indexed from, address indexed to, uint256 value);
 
     function initialize() public virtual initializer {
-        __KRBTokenV01_init("Krebit", "KRB");
+        __KRBTokenV01_init("Krebit", "KRB", "0.1");
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -130,10 +136,11 @@ contract KRBTokenV01 is
      *
      * See {ERC20-constructor}.
      */
-    function __KRBTokenV01_init(string memory name, string memory symbol)
-        internal
-        onlyInitializing
-    {
+    function __KRBTokenV01_init(
+        string memory name,
+        string memory symbol,
+        string memory version
+    ) internal onlyInitializing {
         __Context_init_unchained();
         __ERC165_init_unchained();
         __AccessControl_init_unchained();
@@ -142,8 +149,10 @@ contract KRBTokenV01 is
         __ERC20Burnable_init_unchained();
         __Pausable_init_unchained();
         __ERC20Pausable_init_unchained();
-        __EIP712_init_unchained(name, "0.1"); //version
-        __KRBTokenV01_init_unchained(name, symbol);
+        __EIP712_init_unchained(name, version); //version
+        __PullPayment_init_unchained();
+        __ReentrancyGuard_init_unchained();
+        __KRBTokenV01_init_unchained(name, symbol, version);
     }
 
     /**
@@ -162,7 +171,8 @@ contract KRBTokenV01 is
 
     function __KRBTokenV01_init_unchained(
         string memory name,
-        string memory symbol
+        string memory symbol,
+        string memory version
     ) internal onlyInitializing {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GOVERN_ROLE, _msgSender());
@@ -198,41 +208,55 @@ contract KRBTokenV01 is
     }
 
     /**
-     * @notice Updates `minBalanceToTransfer` to `newMinBalance`.
-     * @param newMinBalance The new min baance to Transfer.
+     * @notice Updates all Protocol Parameters
+     * @param newMinBalanceToTransfer The new min baance to Transfer.
+     * @param newMinBalanceToReceive The new min balance to Receive.
+     * @param newMinBalanceToIssue New min Balance to Issue
+     * @param newFeePercentage new protocol fee percentage (0 -100)
+     * @param newMinPrice New min price to Issue
+     * @param newMinStake new min stake to issue
+     * @param newMinStake new max stake to issue
      *
-     * - emits Updated("minBalanceToTransfer")
+     * - emits Updated()
      *
      * Requirements:
      *
      * - the caller must have the `GOVERN_ROLE`.
+     * - newMaxStake > newMinStake
      */
-    function updateMinBalanceToTransfer(uint256 newMinBalance) public {
+    function updateParameters(
+        uint256 newMinBalanceToTransfer,
+        uint256 newMinBalanceToReceive,
+        uint256 newMinBalanceToIssue,
+        uint256 newFeePercentage,
+        uint256 newMinPrice,
+        uint256 newMinStake,
+        uint256 newMaxStake
+    ) public {
         require(
             hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change minBalance"
+            "KRBToken: must have govern role to change parameters"
         );
-        minBalanceToTransfer = newMinBalance;
-        emit Updated("minBalanceToTransfer");
-    }
+        minBalanceToTransfer = newMinBalanceToTransfer;
+        minBalanceToReceive = newMinBalanceToReceive;
+        minBalanceToIssue = newMinBalanceToIssue;
 
-    /**
-     * @notice Updates `minBalanceToReceive` to `newMinBalance`.
-     * @param newMinBalance The new min baance to Receive.
-     *
-     * - emits Updated("minBalanceToReceive")
-     *
-     * Requirements:
-     *
-     * - the caller must have the `GOVERN_ROLE`.
-     */
-    function updateMinBalanceToReceive(uint256 newMinBalance) public {
         require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change minBalance"
+            newFeePercentage >= 0 || newFeePercentage <= 100,
+            "KRBToken: bad percentage value"
         );
-        minBalanceToReceive = newMinBalance;
-        emit Updated("minBalanceToReceive");
+        feePercentage = newFeePercentage;
+
+        minPriceToIssue = newMinPrice;
+
+        require(
+            newMaxStake > newMinStake,
+            "KRBToken: newMaxStake must be greater or equal than newMinStake"
+        );
+        minStakeToIssue = newMinStake;
+        maxStakeToIssue = newMaxStake;
+
+        emit Updated();
     }
 
     /**
@@ -367,34 +391,6 @@ contract KRBTokenV01 is
      * @dev Checks if the provided address signed a hashed message (`hash`) with
      * `signature`.
      *
-     * See  {EIP-712} and {ERC-3009}.
-     *
-     */
-    function validateSignedData(
-        address signer,
-        bytes32 structHash,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal view {
-        bytes32 digest = _hashTypedDataV4(structHash);
-        address recoveredAddress = ecrecover(digest, v, r, s);
-
-        /// @dev Explicitly disallow authorizations for address(0) as ecrecover returns address(0) on malformed messages
-        require(
-            recoveredAddress != address(0),
-            "KRBToken: invalid signature address(0)"
-        );
-        require(
-            recoveredAddress == signer,
-            "KRBToken: recovered address differs from expected signer"
-        );
-    }
-
-    /**
-     * @dev Checks if the provided address signed a hashed message (`hash`) with
-     * `signature`.
-     *
      * See  {EIP-712} and {EIP-3009}.
      *
      */
@@ -419,175 +415,6 @@ contract KRBTokenV01 is
     }
 
     /**
-     * @notice Updates `feePercentage` to `newFeePercentage`.
-     * @param newFeePercentage new protocol fee percentage (0 -100)
-     *
-     * - emits Updated("feePercentage");
-     *
-     * Requirements:
-     *
-     * - the caller must have the `GOVERN_ROLE`.
-     */
-    function updateFeePercentage(uint256 newFeePercentage) public {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change feePercentage"
-        );
-        require(
-            newFeePercentage >= 0 || newFeePercentage <= 100,
-            "KRBToken: bad percentage value"
-        );
-        feePercentage = newFeePercentage;
-        emit Updated("feePercentage");
-    }
-
-    /**
-     * @notice Updates `minBalanceToIssue` to `newMinBalance`.
-     * @param newMinBalance New min Balance to Issue
-     *
-     * - emits Updated("minBalanceToIssue")
-     *
-     * Requirements:
-     *
-     * - the caller must have the `GOVERN_ROLE`.
-     */
-    function updateMinBalanceToIssue(uint256 newMinBalance) public {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change minBalance"
-        );
-        minBalanceToIssue = newMinBalance;
-        emit Updated("minBalanceToIssue");
-    }
-
-    /**
-     * @notice Updates `minPriceToIssue` to `newMinPrice`.
-     * @param newMinPrice New min price to Issue
-     *
-     * - emits Updated("minPriceToIssue")
-     *
-     * Requirements:
-     *
-     * - the caller must have the `GOVERN_ROLE`.
-     */
-    function updateMinPriceToIssue(uint256 newMinPrice) public {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change minPriceToIssue"
-        );
-        minPriceToIssue = newMinPrice;
-        emit Updated("minPriceToIssue");
-    }
-
-    /**
-     * @notice Updates `minStakeToIssue` and `maxStakeToIssue`.
-     * @param newMinStake new min stake to issue
-     * @param newMinStake new max stake to issue
-     *
-     * - emits Updated("minStakeToIssue")
-     * - emits Updated("maxStakeToIssue")
-     *
-     * Requirements:
-     *
-     * - the caller must have the `GOVERN_ROLE`.
-     * - newMaxStake > newMinStake
-     */
-    function updateStakeToIssue(uint256 newMinStake, uint256 newMaxStake)
-        public
-    {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change minStake"
-        );
-        require(
-            newMaxStake > newMinStake,
-            "KRBToken: newMaxStake must be greater or equal than newMinStake"
-        );
-        minStakeToIssue = newMinStake;
-        emit Updated("minStakeToIssue");
-        maxStakeToIssue = newMaxStake;
-        emit Updated("maxStakeToIssue");
-    }
-
-    /**
-     * @dev Validates that the `VerifiableCredential` conforms to the Krebit Protocol.
-
-     *
-     */
-    function _validateVC(VCTypesV01.VerifiableCredential memory vc)
-        internal
-        view
-    {
-        require(
-            vc.issuer.ethereumAddress != address(0),
-            "KRBToken: bad issuer address"
-        );
-        require(
-            vc.credentialSubject.ethereumAddress != address(0),
-            "KRBToken: bad credentialSubject address"
-        );
-        require(
-            vc.credentialSubject.trust >= 0 ||
-                vc.credentialSubject.trust <= 100,
-            "KRBToken: bad trust percentage value"
-        );
-        require(
-            keccak256(abi.encodePacked(vc.issuer.id)) !=
-                keccak256(abi.encodePacked(vc.credentialSubject.id)),
-            "KRBToken: issuer DID is the same as credentialSubject"
-        );
-        require(
-            vc.issuer.ethereumAddress != vc.credentialSubject.ethereumAddress,
-            "KRBToken: issuer address is the same as credentialSubject"
-        );
-        require(
-            balanceOf(vc.issuer.ethereumAddress) >= minBalanceToIssue,
-            "KRBToken: issuer does not have enough balance"
-        );
-        require(
-            block.timestamp > vc.credentialSubject.nbf,
-            "KRBToken: VC issuanceDate is in the future"
-        );
-        require(
-            block.timestamp < vc.credentialSubject.exp,
-            "KRBToken: VC has already expired"
-        );
-    }
-
-    /**
-     * @dev Calculates the KRB reward as defined by tht Krebit Protocol
-     * Formula:  Krebit = Risk * Trust %
-
-     *
-     */
-    function _getReward(uint256 _stake, uint256 _trust)
-        internal
-        pure
-        returns (uint256)
-    {
-        //Formula:  Krebit = Risk * Trust %
-        return
-            SafeMathUpgradeable.div(
-                SafeMathUpgradeable.mul(_stake, _trust),
-                100
-            );
-    }
-
-    /**
-     * @dev Calculates the ETH fee as percentage of price
-     * Formula:  fee = price * feePercentage %
-
-     *
-     */
-    function _getFee(uint256 _price) internal view returns (uint256) {
-        return
-            SafeMathUpgradeable.div(
-                SafeMathUpgradeable.mul(_price, feePercentage),
-                100
-            );
-    }
-
-    /**
      * @notice Validates that the `VerifiableCredential` conforms to the VCTypes.
      @param vc Verifiable Credential
 
@@ -603,28 +430,6 @@ contract KRBTokenV01 is
 
     /**
      * @notice Get the status of a Verifiable Credential
-     * @param uuid The verifiable Credential uuid
-     *
-     * @return status Verifiable credential Status: None, Issued, Disputed, Revoked, Suspended, Expired
-     *
-     */
-    function getVCStatusByUUid(bytes32 uuid)
-        public
-        view
-        returns (string memory)
-    {
-        Status temp = registry[uuid].credentialStatus;
-        if (temp == Status.None) return "None";
-        if (temp == Status.Issued) return "Issued";
-        if (temp == Status.Disputed) return "Disputed";
-        if (temp == Status.Revoked) return "Revoked";
-        if (temp == Status.Suspended) return "Suspended";
-        if (temp == Status.Expired) return "Expired";
-        return "Error";
-    }
-
-    /**
-     * @notice Get the status of a Verifiable Credential
      * @param vc The verifiable Credential
      *
      * @return status Verifiable credential Status: None, Issued, Disputed, Revoked, Suspended, Expired
@@ -636,18 +441,57 @@ contract KRBTokenV01 is
         returns (string memory)
     {
         bytes32 uuid = getUuid(vc);
-        return getVCStatusByUUid(uuid);
+        Status temp = registry[uuid].credentialStatus;
+        if (temp == Status.None) return "None";
+        if (temp == Status.Issued) return "Issued";
+        if (temp == Status.Disputed) return "Disputed";
+        if (temp == Status.Revoked) return "Revoked";
+        if (temp == Status.Suspended) return "Suspended";
+        if (temp == Status.Expired) return "Expired";
+        return "Error";
     }
 
-    function _issueVC(bytes32 uuid, VCTypesV01.VerifiableCredential memory vc)
-        internal
-        returns (bool)
-    {
+    /**
+     * @notice Register a Verifiable Credential
+     * @dev Calculates and distributes the ETH fee as percentage of price
+     * Formula:  fee = price * feePercentage %
+     * @param vc The verifiable Credential
+     * @param proofValue EIP712-VC proofValue
+     *
+     * Requirements:
+     * - proofValue must be the Issuer's signature of the VC
+     * - sender must be the credentialSubject address
+     * - msg.value must be greater than minPriceToIssue
+     *
+     */
+    function registerVC(
+        VCTypesV01.VerifiableCredential memory vc,
+        bytes memory proofValue
+    ) public payable returns (bool) {
+        require(
+            vc.credentialSubject.ethereumAddress == _msgSender(),
+            "KRBToken: sender must be the credentialSubject address"
+        );
+
+        require(
+            msg.value >= minPriceToIssue,
+            "KRBToken: msg.value must be greater than minPriceToIssue"
+        );
+
+        bytes32 uuid = getUuid(vc);
+
+        validateSignedData(vc.issuer.ethereumAddress, uuid, proofValue);
+
+        VCTypesV01.validateVC(vc);
+
         require(
             registry[uuid].credentialStatus == Status.None,
             "KRBToken: Verifiable Credential hash already been issued"
         );
-        _validateVC(vc);
+        require(
+            balanceOf(vc.issuer.ethereumAddress) >= minBalanceToIssue,
+            "KRBToken: issuer does not have enough balance"
+        );
 
         uint256 _stake = vc.credentialSubject.stake * 10**decimals();
         require(
@@ -663,34 +507,57 @@ contract KRBTokenV01 is
         emit Issued(uuid, vc);
 
         //Mint rewards
-        uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
+        uint256 _reward = VCTypesV01.getReward(
+            _stake,
+            vc.credentialSubject.trust
+        );
         _mint(vc.credentialSubject.ethereumAddress, _reward);
         _mint(vc.issuer.ethereumAddress, _reward);
 
-        //distribute fees
-        uint256 _fee = _getFee(vc.credentialSubject.price);
-        address payable issuer = payable(vc.issuer.ethereumAddress);
-        issuer.transfer(msg.value - _fee);
-        feesAvailableForWithdraw += _fee;
+        //Distributes fees
+        uint256 _fee = SafeMathUpgradeable.div(
+            SafeMathUpgradeable.mul(vc.credentialSubject.price, feePercentage),
+            100
+        );
+        _asyncTransfer(vc.issuer.ethereumAddress, msg.value.sub(_fee));
+        feesAvailableForWithdraw = feesAvailableForWithdraw.add(_fee);
 
         return true;
     }
 
-    function _revokeVC(
-        bytes32 uuid,
+    /**
+     * @notice Delete a Verifiable Credential
+     * @param vc The verifiable Credential
+     * @param reason Reason for deleting
+     *
+     * Requirements:
+     * -  sender must be the credentialSubject address
+     *
+     */
+    function deleteVC(
         VCTypesV01.VerifiableCredential memory vc,
         string memory reason
-    ) internal returns (bool) {
+    ) public returns (bool) {
+        require(
+            vc.credentialSubject.ethereumAddress == _msgSender(),
+            "KRBToken: sender must be the credentialSubject address"
+        );
+
+        bytes32 uuid = getUuid(vc);
+
         require(
             registry[uuid].credentialStatus == Status.Issued,
             "KRBToken: state is not Issued"
         );
 
-        registry[uuid].credentialStatus = Status.Revoked;
-        emit Revoked(uuid, reason);
+        registry[uuid].credentialStatus = Status.None;
+        emit Deleted(uuid, reason);
 
         uint256 _stake = vc.credentialSubject.stake * 10**decimals();
-        uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
+        uint256 _reward = VCTypesV01.getReward(
+            _stake,
+            vc.credentialSubject.trust
+        );
 
         //remove Issuer stake
         if (stakes[vc.issuer.ethereumAddress] >= _stake) {
@@ -708,11 +575,73 @@ contract KRBTokenV01 is
         return true;
     }
 
-    function _suspendVC(
-        bytes32 uuid,
+    /**
+     * @notice Revoke a Verifiable Credential
+     * @param vc The verifiable Credential
+     * @param reason Reason for revoking
+     *
+     * Requirements:
+     * -  sender must be the issuer address
+     *
+     */
+    function revokeVC(
         VCTypesV01.VerifiableCredential memory vc,
         string memory reason
-    ) internal returns (bool) {
+    ) public returns (bool) {
+        require(
+            vc.issuer.ethereumAddress == _msgSender(),
+            "KRBToken: sender must be the issuer address"
+        );
+        bytes32 uuid = getUuid(vc);
+
+        require(
+            registry[uuid].credentialStatus == Status.Issued,
+            "KRBToken: state is not Issued"
+        );
+
+        registry[uuid].credentialStatus = Status.Revoked;
+        emit Revoked(uuid, reason);
+
+        uint256 _stake = vc.credentialSubject.stake * 10**decimals();
+        uint256 _reward = VCTypesV01.getReward(
+            _stake,
+            vc.credentialSubject.trust
+        );
+
+        //remove Issuer stake
+        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
+            stakes[vc.issuer.ethereumAddress] = stakes[
+                vc.issuer.ethereumAddress
+            ].sub(_stake);
+            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
+        }
+        _mint(vc.issuer.ethereumAddress, _stake);
+
+        //discard rewards
+        _burn(vc.credentialSubject.ethereumAddress, _reward);
+        _burn(vc.issuer.ethereumAddress, _reward);
+
+        return true;
+    }
+
+    /**
+     * @notice Suspend a Verifiable Credential
+     * @param vc The verifiable Credential
+     * @param reason Reason for suspending
+     *
+     * Requirements:
+     * -  sender must be the issuer address
+     *
+     */
+    function suspendVC(
+        VCTypesV01.VerifiableCredential memory vc,
+        string memory reason
+    ) public returns (bool) {
+        require(
+            vc.issuer.ethereumAddress == _msgSender(),
+            "KRBToken: sender must be the issuer address"
+        );
+        bytes32 uuid = getUuid(vc);
         require(
             registry[uuid].credentialStatus == Status.Issued,
             "KRBToken: state is not Issued"
@@ -722,7 +651,10 @@ contract KRBTokenV01 is
         emit Suspended(uuid, reason);
 
         uint256 _stake = vc.credentialSubject.stake * 10**decimals();
-        uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
+        uint256 _reward = VCTypesV01.getReward(
+            _stake,
+            vc.credentialSubject.trust
+        );
 
         //remove Issuer stake
         if (stakes[vc.issuer.ethereumAddress] >= _stake) {
@@ -735,38 +667,6 @@ contract KRBTokenV01 is
 
         //reward from subject is lost
         _burn(vc.credentialSubject.ethereumAddress, _reward);
-
-        return true;
-    }
-
-    function _deleteVC(
-        bytes32 uuid,
-        VCTypesV01.VerifiableCredential memory vc,
-        string memory reason
-    ) internal returns (bool) {
-        require(
-            registry[uuid].credentialStatus == Status.Issued,
-            "KRBToken: state is not Issued"
-        );
-
-        registry[uuid].credentialStatus = Status.None;
-        emit Deleted(uuid, reason);
-
-        uint256 _stake = vc.credentialSubject.stake * 10**decimals();
-        uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
-
-        //remove Issuer stake
-        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-            stakes[vc.issuer.ethereumAddress] = stakes[
-                vc.issuer.ethereumAddress
-            ].sub(_stake);
-            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-        }
-        _mint(vc.issuer.ethereumAddress, _stake);
-
-        //discard rewards
-        _burn(vc.credentialSubject.ethereumAddress, _reward);
-        _burn(vc.issuer.ethereumAddress, _reward);
 
         return true;
     }
@@ -799,119 +699,6 @@ contract KRBTokenV01 is
         return (block.timestamp > vc.credentialSubject.exp);
     }
 
-    function _issueVCWithAuthorization(
-        VCTypesV01.VerifiableCredential memory vc,
-        bytes memory proofValue
-    ) internal returns (bool) {
-        bytes32 uuid = getUuid(vc);
-
-        validateSignedData(vc.issuer.ethereumAddress, uuid, proofValue);
-
-        _issueVC(uuid, vc);
-
-        return true;
-    }
-
-    /**
-     * @notice Register a Verifiable Credential
-     * @param vc The verifiable Credential
-     * @param proofValue EIP712-VC proofValue
-     *
-     * Requirements:
-     * - proofValue must be the Issuer's signature of the VC
-     * - sender must be the credentialSubject address
-     * - msg.value must be greater than minPriceToIssue
-     *
-     */
-    function registerVC(
-        VCTypesV01.VerifiableCredential memory vc,
-        bytes memory proofValue
-    ) public payable returns (bool) {
-        require(
-            vc.credentialSubject.ethereumAddress == _msgSender(),
-            "KRBToken: sender must be the credentialSubject address"
-        );
-        require(
-            vc.credentialSubject.price == msg.value,
-            "KRBToken: msg.value does not match credentialSubject.price"
-        );
-        require(
-            msg.value >= minPriceToIssue,
-            "KRBToken: msg.value must be greater than minPriceToIssue"
-        );
-
-        _issueVCWithAuthorization(vc, proofValue);
-
-        return true;
-    }
-
-    /**
-     * @notice Delete a Verifiable Credential
-     * @param vc The verifiable Credential
-     * @param reason Reason for deleting
-     *
-     * Requirements:
-     * -  sender must be the credentialSubject address
-     *
-     */
-    function deleteVC(
-        VCTypesV01.VerifiableCredential memory vc,
-        string memory reason
-    ) public returns (bool) {
-        require(
-            vc.credentialSubject.ethereumAddress == _msgSender(),
-            "KRBToken: sender must be the credentialSubject address"
-        );
-
-        _deleteVC(getUuid(vc), vc, reason);
-
-        return true;
-    }
-
-    /**
-     * @notice Revoke a Verifiable Credential
-     * @param vc The verifiable Credential
-     * @param reason Reason for revoking
-     *
-     * Requirements:
-     * -  sender must be the issuer address
-     *
-     */
-    function revokeVC(
-        VCTypesV01.VerifiableCredential memory vc,
-        string memory reason
-    ) public returns (bool) {
-        require(
-            vc.issuer.ethereumAddress == _msgSender(),
-            "KRBToken: sender must be the issuer address"
-        );
-        _revokeVC(getUuid(vc), vc, reason);
-
-        return true;
-    }
-
-    /**
-     * @notice Suspend a Verifiable Credential
-     * @param vc The verifiable Credential
-     * @param reason Reason for suspending
-     *
-     * Requirements:
-     * -  sender must be the issuer address
-     *
-     */
-    function suspendVC(
-        VCTypesV01.VerifiableCredential memory vc,
-        string memory reason
-    ) public returns (bool) {
-        require(
-            vc.issuer.ethereumAddress == _msgSender(),
-            "KRBToken: sender must be the issuer address"
-        );
-        _suspendVC(getUuid(vc), vc, reason);
-
-        return true;
-    }
-
     /**
      * @notice Called by DAO Govern arbitration to resolve a dispute
      * @param vc The verifiable Credential
@@ -942,13 +729,15 @@ contract KRBTokenV01 is
             disputeVC.issuer.ethereumAddress == _msgSender(),
             "KRBToken: issuer must be the Govern address"
         );
-
-        bytes32 uuid = getUuid(vc);
         require(
             keccak256(abi.encodePacked(disputeVC.credentialSubject.id)) ==
                 keccak256(abi.encodePacked(vc.id)),
             "KRBToken: disputeVC credentialSubject id differes from VC id"
         );
+
+        VCTypesV01.validateVC(disputeVC);
+
+        bytes32 uuid = getUuid(vc);
 
         require(
             registry[uuid].credentialStatus != Status.None &&
@@ -974,14 +763,17 @@ contract KRBTokenV01 is
         }
 
         //Revert rewards from issuer and credentialSubject
-        uint256 _reward = _getReward(_stake, vc.credentialSubject.trust);
+        uint256 _reward = VCTypesV01.getReward(
+            _stake,
+            vc.credentialSubject.trust
+        );
         _burn(vc.credentialSubject.ethereumAddress, _reward);
         _burn(vc.issuer.ethereumAddress, _reward);
 
         /// @dev Reward disputer
         uint256 _disputeStake = disputeVC.credentialSubject.stake *
             10**decimals();
-        uint256 _disputeReward = _getReward(
+        uint256 _disputeReward = VCTypesV01.getReward(
             _disputeStake,
             disputeVC.credentialSubject.trust
         );
@@ -995,14 +787,17 @@ contract KRBTokenV01 is
      * Requirements:
      * - Only the DAO govern can call this.
      */
-    function withdrawFees(address payable _to, uint256 _amount) external {
+    function withdrawFees(address payable _to, uint256 _amount)
+        external
+        nonReentrant
+    {
         require(
             hasRole(GOVERN_ROLE, _msgSender()),
             "KRBToken: must have govern role to withdraw"
         );
         require(_amount <= feesAvailableForWithdraw); /// @dev Also prevents underflow
-        feesAvailableForWithdraw -= _amount;
-        _to.transfer(_amount);
+        feesAvailableForWithdraw = feesAvailableForWithdraw.sub(_amount);
+        _asyncTransfer(_to, _amount);
     }
 
     uint256[50] private __gap;

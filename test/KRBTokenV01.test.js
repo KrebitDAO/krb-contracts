@@ -133,42 +133,15 @@ describe("KRBTokenV01", function () {
     );
   });
 
-  it("updateMinBalanceToTransfer from non-Govern role", async function () {
-    await expect(
-      this.krbTokenIssuer.updateMinBalanceToTransfer((2 * 10 ** 18).toString())
-    ).to.be.revertedWith(
-      "KRBToken: must have govern role to change minBalance"
-    );
-    expect(await this.krbToken.minBalanceToTransfer()).to.equal(
-      (100 * 10 ** 18).toString()
-    );
-  });
-
-  it("updateMinBalanceToTransfer", async function () {
-    await expect(
-      this.krbToken.updateMinBalanceToTransfer((2 * 10 ** 18).toString())
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minBalanceToTransfer");
-    expect(await this.krbToken.minBalanceToTransfer()).to.equal(
-      (2 * 10 ** 18).toString()
-    );
-  });
-
   it("minBalanceToReceive", async function () {
     expect(await this.krbToken.minBalanceToReceive()).to.equal(
       (100 * 10 ** 18).toString()
     );
   });
 
-  it("updateMinBalanceToReceive", async function () {
-    await expect(
-      await this.krbToken.updateMinBalanceToReceive((2 * 10 ** 18).toString())
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minBalanceToReceive");
-    expect(await this.krbToken.minBalanceToReceive()).to.equal(
-      (2 * 10 ** 18).toString()
+  it("minBalanceToIssue", async function () {
+    expect(await this.krbToken.minBalanceToIssue()).to.equal(
+      (100 * 10 ** 18).toString()
     );
   });
 
@@ -179,36 +152,6 @@ describe("KRBTokenV01", function () {
   it("minPriceToIssue", async function () {
     expect(await this.krbToken.minPriceToIssue()).to.equal(
       ethers.utils.parseEther("0.0001").toString()
-    );
-  });
-
-  it("updateMinPriceToIssue", async function () {
-    await expect(
-      await this.krbToken.updateMinPriceToIssue(
-        ethers.utils.parseEther("0.0002").toString()
-      )
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minPriceToIssue");
-    expect(await this.krbToken.minPriceToIssue()).to.equal(
-      ethers.utils.parseEther("0.0002").toString()
-    );
-  });
-
-  it("minBalanceToIssue", async function () {
-    expect(await this.krbToken.minBalanceToIssue()).to.equal(
-      (100 * 10 ** 18).toString()
-    );
-  });
-
-  it("updateMinBalanceToIssue", async function () {
-    await expect(
-      await this.krbToken.updateMinBalanceToIssue((2 * 10 ** 18).toString())
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minBalanceToIssue");
-    expect(await this.krbToken.minBalanceToIssue()).to.equal(
-      (2 * 10 ** 18).toString()
     );
   });
 
@@ -224,23 +167,57 @@ describe("KRBTokenV01", function () {
     );
   });
 
-  it("updateFeePercentage", async function () {
-    await expect(await this.krbToken.updateFeePercentage((20).toString()))
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("feePercentage");
-    expect(await this.krbToken.feePercentage()).to.equal((20).toString());
-  });
-
-  it("updateStakeToIssue", async function () {
+  it("updateParameters from non-Govern role", async function () {
     await expect(
-      await this.krbToken.updateStakeToIssue(
+      this.krbTokenIssuer.updateParameters(
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (20).toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (3 * 10 ** 18).toString(),
         (100 * 10 ** 18).toString()
       )
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minStakeToIssue");
+    ).to.be.revertedWith(
+      "KRBToken: must have govern role to change parameters"
+    );
+    expect(await this.krbToken.minBalanceToTransfer()).to.equal(
+      (100 * 10 ** 18).toString()
+    );
+    expect(await this.krbToken.minBalanceToReceive()).to.equal(
+      (100 * 10 ** 18).toString()
+    );
+    expect(await this.krbToken.feePercentage()).to.equal((10).toString());
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0.0001").toString()
+    );
+  });
 
+  it("updateParameters", async function () {
+    await expect(
+      this.krbToken.updateParameters(
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (20).toString(),
+        ethers.utils.parseEther("0.0002").toString(),
+        (3 * 10 ** 18).toString(),
+        (100 * 10 ** 18).toString()
+      )
+    ).to.emit(this.krbToken, "Updated");
+    expect(await this.krbToken.minBalanceToTransfer()).to.equal(
+      (2 * 10 ** 18).toString()
+    );
+    expect(await this.krbToken.minBalanceToReceive()).to.equal(
+      (2 * 10 ** 18).toString()
+    );
+    expect(await this.krbToken.minBalanceToIssue()).to.equal(
+      (2 * 10 ** 18).toString()
+    );
+    expect(await this.krbToken.feePercentage()).to.equal((20).toString());
+    expect(await this.krbToken.minPriceToIssue()).to.equal(
+      ethers.utils.parseEther("0.0002").toString()
+    );
     expect(await this.krbToken.minStakeToIssue()).to.equal(
       (3 * 10 ** 18).toString()
     );
@@ -251,7 +228,12 @@ describe("KRBTokenV01", function () {
 
   it("updateStakeToIssue negative", async function () {
     await expect(
-      this.krbToken.updateStakeToIssue(
+      this.krbToken.updateParameters(
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (20).toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (10 * 10 ** 18).toString(),
         (1 * 10 ** 18).toString()
       )
@@ -380,14 +362,18 @@ describe("KRBTokenV01", function () {
     );
   });
 
-  it("updateMinPriceToIssue to 0.001 eth", async function () {
+  it("update MinPriceToIssue to 0.001 eth", async function () {
     await expect(
-      await this.krbToken.updateMinPriceToIssue(
-        ethers.utils.parseEther("0.0001").toString()
+      this.krbToken.updateParameters(
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (20).toString(),
+        ethers.utils.parseEther("0.0001").toString(),
+        (3 * 10 ** 18).toString(),
+        (100 * 10 ** 18).toString()
       )
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minPriceToIssue");
+    ).to.emit(this.krbToken, "Updated");
     expect(await this.krbToken.minPriceToIssue()).to.equal(
       ethers.utils.parseEther("0.0001").toString()
     );
@@ -544,12 +530,16 @@ describe("KRBTokenV01", function () {
 
   it("updateMinPriceToIssue to 0 eth", async function () {
     await expect(
-      await this.krbToken.updateMinPriceToIssue(
-        ethers.utils.parseEther("0").toString()
+      this.krbToken.updateParameters(
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (2 * 10 ** 18).toString(),
+        (20).toString(),
+        ethers.utils.parseEther("0").toString(),
+        (3 * 10 ** 18).toString(),
+        (100 * 10 ** 18).toString()
       )
-    )
-      .to.emit(this.krbToken, "Updated")
-      .withArgs("minPriceToIssue");
+    ).to.emit(this.krbToken, "Updated");
     expect(await this.krbToken.minPriceToIssue()).to.equal(
       ethers.utils.parseEther("0").toString()
     );

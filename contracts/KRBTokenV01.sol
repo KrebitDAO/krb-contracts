@@ -124,12 +124,13 @@ contract KRBTokenV01 is
 
     event Staked(address indexed from, address indexed to, uint256 value);
 
-    function initialize() public virtual initializer {
-        __KRBTokenV01_init("Krebit", "KRB", "0.1");
+    function initialize(
+        string memory name,
+        string memory symbol,
+        string memory version
+    ) public virtual initializer {
+        __KRBTokenV01_init(name, symbol, version);
     }
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
 
     /**
      * @notice Initializes the contract.
@@ -170,9 +171,9 @@ contract KRBTokenV01 is
      */
 
     function __KRBTokenV01_init_unchained(
-        string memory name,
-        string memory symbol,
-        string memory version
+        string memory,
+        string memory,
+        string memory
     ) internal onlyInitializing {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GOVERN_ROLE, _msgSender());

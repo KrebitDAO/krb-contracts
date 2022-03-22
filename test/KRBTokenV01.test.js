@@ -53,9 +53,13 @@ describe("KRBTokenV01", function () {
     this.accounts = await ethers.provider.listAccounts();
 
     this.KRBTokenV01 = await ethers.getContractFactory("KRBTokenV01");
-    this.krbToken = await upgrades.deployProxy(this.KRBTokenV01, {
-      kind: "uups",
-    });
+    this.krbToken = await upgrades.deployProxy(
+      this.KRBTokenV01,
+      ["Krebit", "rKRB", "0.1"],
+      {
+        kind: "uups",
+      }
+    );
     await this.krbToken.deployed();
 
     //accounts[1] is the VC Issuer
@@ -125,6 +129,10 @@ describe("KRBTokenV01", function () {
         type: "EthereumEip712Signature2021",
       },
     };
+  });
+
+  it("symbol", async function () {
+    expect(await this.krbToken.symbol()).to.equal("rKRB");
   });
 
   it("minBalanceToTransfer", async function () {

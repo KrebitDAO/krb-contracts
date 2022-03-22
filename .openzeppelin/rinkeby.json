@@ -2,15 +2,15 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0xA88d4F9ce30031d10817592F18D36363D9B46be8",
-      "txHash": "0x2b3597403b18667c915d0a36c8f5d6acd4971422d070a3b57854194494773cf8",
+      "address": "0x6e90c5f01098DfEcA6Ad3381D1d02d38D2cfD502",
+      "txHash": "0x0f48152010b3028b8012bdfd071816ec9be51ed50a3d009794e3ecf80111c9c0",
       "kind": "uups"
     }
   ],
   "impls": {
-    "8687e846d8fc9246cb96e95b098f7fb6f4f72ee5eb8838912d5cc1a92ff9b6d1": {
-      "address": "0x38e10ACF3454ec683114815a2E78C28E0CE631E5",
-      "txHash": "0x9f73ebb1e5d88aa51d8ac477e7469c9a0c45dc8c03e8532ccf783887165d4c3f",
+    "bd873bd29aca62cf8c15838c4deafd72b853cf92ffe600dd0a620db427629574": {
+      "address": "0xC17D73b7b797CDD93EcCE4467719405631f7986f",
+      "txHash": "0x9872989f510ce24c5ef7d3fd13a2c665c954cdadb80ff36fb1a6256fc321ca6d",
       "layout": {
         "storage": [
           {
@@ -52,7 +52,7 @@
           {
             "contract": "AccessControlEnumerableUpgradeable",
             "label": "_roleMembers",
-            "type": "t_mapping(t_bytes32,t_struct(AddressSet)3897_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(AddressSet)4300_storage)",
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol:26"
           },
           {
@@ -152,88 +152,112 @@
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:81"
           },
           {
+            "contract": "PullPaymentUpgradeable",
+            "label": "_escrow",
+            "type": "t_contract(EscrowUpgradeable)3618",
+            "src": "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol:28"
+          },
+          {
+            "contract": "PullPaymentUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol:76"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:68"
+          },
+          {
             "contract": "KRBTokenV01",
             "label": "minBalanceToTransfer",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:55"
+            "src": "contracts/KRBTokenV01.sol:61"
           },
           {
             "contract": "KRBTokenV01",
             "label": "minBalanceToReceive",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:59"
+            "src": "contracts/KRBTokenV01.sol:65"
           },
           {
             "contract": "KRBTokenV01",
             "label": "minBalanceToIssue",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:63"
+            "src": "contracts/KRBTokenV01.sol:69"
           },
           {
             "contract": "KRBTokenV01",
             "label": "minPriceToIssue",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:67"
+            "src": "contracts/KRBTokenV01.sol:73"
           },
           {
             "contract": "KRBTokenV01",
             "label": "minStakeToIssue",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:71"
+            "src": "contracts/KRBTokenV01.sol:77"
           },
           {
             "contract": "KRBTokenV01",
             "label": "maxStakeToIssue",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:75"
+            "src": "contracts/KRBTokenV01.sol:81"
           },
           {
             "contract": "KRBTokenV01",
             "label": "feePercentage",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:79"
+            "src": "contracts/KRBTokenV01.sol:85"
           },
           {
             "contract": "KRBTokenV01",
             "label": "feesAvailableForWithdraw",
             "type": "t_uint256",
-            "src": "contracts/KRBTokenV01.sol:83"
+            "src": "contracts/KRBTokenV01.sol:89"
           },
           {
             "contract": "KRBTokenV01",
             "label": "registry",
-            "type": "t_mapping(t_bytes32,t_struct(VerifiableData)4262_storage)",
-            "src": "contracts/KRBTokenV01.sol:105"
+            "type": "t_mapping(t_bytes32,t_struct(VerifiableData)4669_storage)",
+            "src": "contracts/KRBTokenV01.sol:111"
           },
           {
             "contract": "KRBTokenV01",
             "label": "stakes",
             "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts/KRBTokenV01.sol:110"
+            "src": "contracts/KRBTokenV01.sol:116"
           },
           {
             "contract": "KRBTokenV01",
             "label": "__gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "contracts/KRBTokenV01.sol:1008"
+            "src": "contracts/KRBTokenV01.sol:804"
           }
         ],
         "types": {
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_bytes32,t_struct(VerifiableData)4262_storage)": {
+          "t_mapping(t_bytes32,t_struct(VerifiableData)4669_storage)": {
             "label": "mapping(bytes32 => struct KRBTokenV01.VerifiableData)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(VerifiableData)4262_storage": {
+          "t_struct(VerifiableData)4669_storage": {
             "label": "struct KRBTokenV01.VerifiableData",
             "members": [
               {
                 "label": "credentialStatus",
-                "type": "t_enum(Status)4256"
+                "type": "t_enum(Status)4663"
               },
               {
                 "label": "disputedBy",
@@ -241,7 +265,7 @@
               }
             ]
           },
-          "t_enum(Status)4256": {
+          "t_enum(Status)4663": {
             "label": "enum KRBTokenV01.Status",
             "members": [
               "None",
@@ -261,11 +285,14 @@
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
-          "t_bool": {
-            "label": "bool"
-          },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
+          },
+          "t_contract(EscrowUpgradeable)3618": {
+            "label": "contract EscrowUpgradeable"
+          },
+          "t_bool": {
+            "label": "bool"
           },
           "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
             "label": "mapping(address => mapping(address => uint256))"
@@ -276,19 +303,19 @@
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
           },
-          "t_mapping(t_bytes32,t_struct(AddressSet)3897_storage)": {
+          "t_mapping(t_bytes32,t_struct(AddressSet)4300_storage)": {
             "label": "mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)"
           },
-          "t_struct(AddressSet)3897_storage": {
+          "t_struct(AddressSet)4300_storage": {
             "label": "struct EnumerableSetUpgradeable.AddressSet",
             "members": [
               {
                 "label": "_inner",
-                "type": "t_struct(Set)3596_storage"
+                "type": "t_struct(Set)3999_storage"
               }
             ]
           },
-          "t_struct(Set)3596_storage": {
+          "t_struct(Set)3999_storage": {
             "label": "struct EnumerableSetUpgradeable.Set",
             "members": [
               {

@@ -17,40 +17,33 @@ The account that deploys the contract will be granted the govern role,
 as well as the default admin role, which will let it grant govern roles
 to other accounts.
 
+
 ## Functions
-
 ### initialize
-
 ```solidity
   function initialize(
   ) public
 ```
 
-### constructor
 
-```solidity
-  function constructor(
-  ) public
-```
 
-### \_\_KRBTokenV01_init
 
+### __KRBTokenV01_init
 ```solidity
   function __KRBTokenV01_init(
   ) internal
 ```
-
 Initializes the contract.
 
 See {ERC20-constructor}.
 
-### \_\_KRBTokenV01_init_unchained
 
+
+### __KRBTokenV01_init_unchained
 ```solidity
   function __KRBTokenV01_init_unchained(
   ) internal
 ```
-
 Grants `DEFAULT_ADMIN_ROLE`, `GOVERN_ROLE` and `PAUSER_ROLE` to the
 account that deploys the contract.
 
@@ -62,24 +55,25 @@ account that deploys the contract.
 - minStakeToIssue : 1 KRB
 - maxStakeToIssue : 10 KRB
 
-### \_authorizeUpgrade
 
+
+### _authorizeUpgrade
 ```solidity
   function _authorizeUpgrade(
   ) internal
 ```
-
 Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
 {upgradeTo} and {upgradeToAndCall}.
 
-See {UUPSUpgradeable-\_authorizeUpgrade}.
+See {UUPSUpgradeable-_authorizeUpgrade}.
 
 Requirements:
 
 - the caller must have the `GOVERN_ROLE`.
 
-### updateParameters
 
+
+### updateParameters
 ```solidity
   function updateParameters(
     uint256 newMinBalanceToTransfer,
@@ -91,20 +85,19 @@ Requirements:
     uint256 newMinStake
   ) public
 ```
-
 Updates all Protocol Parameters
 
-#### Parameters:
 
-| Name                      | Type    | Description                          |
-| :------------------------ | :------ | :----------------------------------- |
-| `newMinBalanceToTransfer` | uint256 | The new min baance to Transfer.      |
-| `newMinBalanceToReceive`  | uint256 | The new min balance to Receive.      |
-| `newMinBalanceToIssue`    | uint256 | New min Balance to Issue             |
-| `newFeePercentage`        | uint256 | new protocol fee percentage (0 -100) |
-| `newMinPrice`             | uint256 | New min price to Issue               |
-| `newMinStake`             | uint256 | new min stake to issue               |
-| `newMinStake`             | uint256 | new max stake to issue               |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`newMinBalanceToTransfer` | uint256 | The new min baance to Transfer.
+|`newMinBalanceToReceive` | uint256 | The new min balance to Receive.
+|`newMinBalanceToIssue` | uint256 | New min Balance to Issue
+|`newFeePercentage` | uint256 | new protocol fee percentage (0 -100)
+|`newMinPrice` | uint256 | New min price to Issue
+|`newMinStake` | uint256 | new min stake to issue
+|`newMinStake` | uint256 | new max stake to issue
 
 - emits Updated()
 
@@ -113,8 +106,7 @@ Requirements:
 - the caller must have the `GOVERN_ROLE`.
 - newMaxStake > newMinStake
 
-### \_beforeTokenTransfer
-
+### _beforeTokenTransfer
 ```solidity
   function _beforeTokenTransfer(
   ) internal
@@ -126,8 +118,8 @@ Requirements:
 
 - the caller must have the `GOVERN_ROLE`.
 
-### mint
 
+### mint
 ```solidity
   function mint(
   ) public
@@ -135,90 +127,84 @@ Requirements:
 
 Creates `amount` new tokens for `to`.
 
-See {ERC20-\_mint}.
+See {ERC20-_mint}.
 
 Requirements:
 
 - the caller must have the `GOVERN_ROLE`.
 
-### burnStake
 
+
+### burnStake
 ```solidity
   function burnStake(
     address issuer,
     uint256 stake
   ) public
 ```
-
 Destroys `_stake` token stake from `issuer`
 
-#### Parameters:
 
-| Name     | Type    | Description           |
-| :------- | :------ | :-------------------- |
-| `issuer` | address | The issuer address    |
-| `stake`  | uint256 | The KRB stake to burn |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`issuer` | address | The issuer address
+|`stake` | uint256 | The KRB stake to burn
 
 - emits Updated("minBalanceToReceive")
 
 Requirements:
-
 - the caller must have the `GOVERN_ROLE`.
 
 ### pause
-
 ```solidity
   function pause(
   ) public
 ```
-
 Pauses all token transfers.
 
-See {ERC20Pausable} and {Pausable-\_pause}.
+See {ERC20Pausable} and {Pausable-_pause}.
 
 Requirements:
 
 - the caller must have the `PAUSER_ROLE`.
 
-### unpause
 
+
+### unpause
 ```solidity
   function unpause(
   ) public
 ```
-
 Unpauses all token transfers.
 
-See {ERC20Pausable} and {Pausable-\_unpause}.
+See {ERC20Pausable} and {Pausable-_unpause}.
 
 Requirements:
 
 - the caller must have the `PAUSER_ROLE`.
 
-### stakeOf
 
+
+### stakeOf
 ```solidity
   function stakeOf(
     address issuer
   ) public returns (uint256)
 ```
-
 A method to retrieve the stake for an issuer.
 
-#### Parameters:
 
-| Name     | Type    | Description                           |
-| :------- | :------ | :------------------------------------ |
-| `issuer` | address | The issuer to retrieve the stake for. |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`issuer` | address | The issuer to retrieve the stake for.
 
 #### Return Values:
-
-| Name    | Type    | Description               |
-| :------ | :------ | :------------------------ |
-| `stake` | address | The amount of KRB staked. |
-
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`stake`| address | The amount of KRB staked.
 ### DOMAIN_SEPARATOR
-
 ```solidity
   function DOMAIN_SEPARATOR(
   ) external returns (bytes32)
@@ -226,8 +212,8 @@ A method to retrieve the stake for an issuer.
 
 solhint-disable-next-line func-name-mixedcase
 
-### validateSignedData
 
+### validateSignedData
 ```solidity
   function validateSignedData(
   ) internal
@@ -236,187 +222,174 @@ solhint-disable-next-line func-name-mixedcase
 Checks if the provided address signed a hashed message (`hash`) with
 `signature`.
 
-See {EIP-712} and {EIP-3009}.
+See  {EIP-712} and {EIP-3009}.
+
+
 
 ### getUuid
-
 ```solidity
   function getUuid(
   ) public returns (bytes32)
 ```
-
 Validates that the `VerifiableCredential` conforms to the VCTypes.
-@param vc Verifiable Credential
+     @param vc Verifiable Credential
+
+
+
+
 
 ### getVCStatus
-
 ```solidity
   function getVCStatus(
     struct VCTypesV01.VerifiableCredential vc
   ) public returns (string)
 ```
-
 Get the status of a Verifiable Credential
 
-#### Parameters:
 
-| Name | Type                                   | Description               |
-| :--- | :------------------------------------- | :------------------------ |
-| `vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+
 
 #### Return Values:
-
-| Name     | Type                                   | Description                                                                       |
-| :------- | :------------------------------------- | :-------------------------------------------------------------------------------- |
-| `status` | struct VCTypesV01.VerifiableCredential | Verifiable credential Status: None, Issued, Disputed, Revoked, Suspended, Expired |
+| Name                           | Type          | Description                                                                  |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------- |
+|`status`| struct VCTypesV01.VerifiableCredential | Verifiable credential Status: None, Issued, Disputed, Revoked, Suspended, Expired
 
 ### registerVC
-
 ```solidity
   function registerVC(
     struct VCTypesV01.VerifiableCredential vc,
     bytes proofValue
   ) public returns (bool)
 ```
-
 Register a Verifiable Credential
 
 Calculates and distributes the ETH fee as percentage of price
-Formula: fee = price \* feePercentage %
+Formula:  fee = price * feePercentage %
 
 #### Parameters:
-
-| Name         | Type                                   | Description               |
-| :----------- | :------------------------------------- | :------------------------ |
-| `vc`         | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
-| `proofValue` | bytes                                  | EIP712-VC proofValue      |
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+|`proofValue` | bytes | EIP712-VC proofValue
 
 Requirements:
-
 - proofValue must be the Issuer's signature of the VC
 - sender must be the credentialSubject address
 - msg.value must be greater than minPriceToIssue
 
-### deleteVC
 
+### deleteVC
 ```solidity
   function deleteVC(
     struct VCTypesV01.VerifiableCredential vc,
     string reason
   ) public returns (bool)
 ```
-
 Delete a Verifiable Credential
 
-#### Parameters:
 
-| Name     | Type                                   | Description               |
-| :------- | :------------------------------------- | :------------------------ |
-| `vc`     | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
-| `reason` | string                                 | Reason for deleting       |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+|`reason` | string | Reason for deleting
 
 Requirements:
+-  sender must be the credentialSubject address
 
-- sender must be the credentialSubject address
 
 ### revokeVC
-
 ```solidity
   function revokeVC(
     struct VCTypesV01.VerifiableCredential vc,
     string reason
   ) public returns (bool)
 ```
-
 Revoke a Verifiable Credential
 
-#### Parameters:
 
-| Name     | Type                                   | Description               |
-| :------- | :------------------------------------- | :------------------------ |
-| `vc`     | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
-| `reason` | string                                 | Reason for revoking       |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+|`reason` | string | Reason for revoking
 
 Requirements:
+-  sender must be the issuer address
 
-- sender must be the issuer address
 
 ### suspendVC
-
 ```solidity
   function suspendVC(
     struct VCTypesV01.VerifiableCredential vc,
     string reason
   ) public returns (bool)
 ```
-
 Suspend a Verifiable Credential
 
-#### Parameters:
 
-| Name     | Type                                   | Description               |
-| :------- | :------------------------------------- | :------------------------ |
-| `vc`     | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
-| `reason` | string                                 | Reason for suspending     |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+|`reason` | string | Reason for suspending
 
 Requirements:
+-  sender must be the issuer address
 
-- sender must be the issuer address
 
 ### expiredVC
-
 ```solidity
   function expiredVC(
     struct VCTypesV01.VerifiableCredential vc
   ) external returns (bool)
 ```
-
 Mark a Verifiable Credential as Expired
 
-#### Parameters:
 
-| Name | Type                                   | Description               |
-| :--- | :------------------------------------- | :------------------------ |
-| `vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+
 
 ### disputeVCByGovern
-
 ```solidity
   function disputeVCByGovern(
     struct VCTypesV01.VerifiableCredential vc,
     struct VCTypesV01.VerifiableCredential disputeVC
   ) public returns (bool)
 ```
-
 Called by DAO Govern arbitration to resolve a dispute
 
-#### Parameters:
 
-| Name        | Type                                   | Description               |
-| :---------- | :------------------------------------- | :------------------------ |
-| `vc`        | struct VCTypesV01.VerifiableCredential | The verifiable Credential |
-| `disputeVC` | struct VCTypesV01.VerifiableCredential | Dispute Credential        |
+#### Parameters:
+| Name | Type | Description                                                          |
+| :--- | :--- | :------------------------------------------------------------------- |
+|`vc` | struct VCTypesV01.VerifiableCredential | The verifiable Credential
+|`disputeVC` | struct VCTypesV01.VerifiableCredential | Dispute Credential
 
 Requirements:
+-  sender must be the DAO Govern address
 
-- sender must be the DAO Govern address
 
 ### withdrawFees
-
 ```solidity
   function withdrawFees(
   ) external
 ```
-
 Withdraw fees collected by the contract.
 Requirements:
-
 - Only the DAO govern can call this.
 
+
+
 ## Events
-
 ### Updated
-
 ```solidity
   event Updated(
   )
@@ -425,50 +398,58 @@ Requirements:
 For config updates
 
 ### Issued
-
 ```solidity
   event Issued(
   )
 ```
 
-### Disputed
 
+
+### Disputed
 ```solidity
   event Disputed(
   )
 ```
 
-### Revoked
 
+
+### Revoked
 ```solidity
   event Revoked(
   )
 ```
 
-### Suspended
 
+
+### Suspended
 ```solidity
   event Suspended(
   )
 ```
 
-### Expired
 
+
+### Expired
 ```solidity
   event Expired(
   )
 ```
 
-### Deleted
 
+
+### Deleted
 ```solidity
   event Deleted(
   )
 ```
 
-### Staked
 
+
+### Staked
 ```solidity
   event Staked(
   )
 ```
+
+
+

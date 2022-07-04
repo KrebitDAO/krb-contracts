@@ -479,6 +479,11 @@ contract KRBTokenV01 is
             "KRBToken: msg.value must be greater than minPriceToIssue"
         );
 
+        require(
+            vc.credentialSubject.price == msg.value,
+            "KRBToken: msg.value does not match credentialSubject.price"
+        );
+
         bytes32 uuid = getUuid(vc);
 
         validateSignedData(vc.issuer.ethereumAddress, uuid, proofValue);

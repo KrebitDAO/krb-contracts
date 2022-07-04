@@ -7,7 +7,8 @@
     "test": "npx hardhat test",
     "docs": "npx solidity-docgen --solc-module solc-0.8 -t ./templates",
     "deploy-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_rinkeby.js",
-    "deploy-xdai": "npx hardhat run --network xdai scripts/deploy_xdai.js"
+    "deploy-xdai": "npx hardhat run --network xdai scripts/deploy_xdai.js",
+    "nft-rinkeby": "npx hardhat run --network rinkeby scripts/nft_rinkeby.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   "homepage": "https://github.com/krebit/krb-contracts#readme",
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.4",
+    "@openzeppelin/contracts": "^4.7.0",
     "@openzeppelin/contracts-upgradeable": "^4.4.1",
     "@openzeppelin/hardhat-upgrades": "^1.12.1",
     "dotenv": "^10.0.0",

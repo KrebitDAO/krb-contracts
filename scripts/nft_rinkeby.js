@@ -8,9 +8,11 @@ async function main() {
     "TestBuddies",
     "krbNFT",
     "ipfs://QmS66LWcinekhXibiiZwJvtHNuCHxzZvedneQDZW1ximPJ/",
-    "https://gateway.pinata.cloud/ipfs/QmUBq5SxiZz4Q9auTpkXH2tY7JL4qBJEBEYw4ux7E2Fa7n",
+    "https://nft-drop-verifiable-credentials.vercel.app/api/rare-buddies",
     100 * 10 ** 12,
-    "0xdb13a2df867495da84764c55d0e82ded180f7f6d"
+    "0xdb13a2df867495da84764c55d0e82ded180f7f6d",
+    "olderThan",
+    "21"
   );
   await krbNFT.deployed();
   console.log("KRBCredentialNFT deployed to:", krbNFT.address);

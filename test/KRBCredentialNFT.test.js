@@ -36,7 +36,9 @@ describe("KRBCredentialNFT", function () {
       "ipfs://QmS66LWcinekhXibiiZwJvtHNuCHxzZvedneQDZW1ximPJ/",
       "ipfs:///QmS66LWcinekhXibiiZwJvtHNuCHxzZvedneQDZW1ximPJ/contract.json",
       100 * 10 ** 12,
-      this.krbToken.address
+      this.krbToken.address,
+      "olderThan",
+      "21"
     );
     await this.krbNFT.deployed();
     console.log("KRBCredentialNFT deployed to:", this.krbNFT.address);
@@ -83,10 +85,9 @@ describe("KRBCredentialNFT", function () {
         id: "did:user",
         ethereumAddress: this.accounts[2],
         type: "olderThan",
-        value: "encrypted",
+        value: '{"value":"21","evidence":""}',
         typeSchema: "ceramic://def",
-        encrypted:
-          "0x0c94bf56745f8d3d9d49b77b345c780a0c11ea997229f925f39a1946d51856fb",
+        encrypted: "null",
         trust: 50,
         stake: 6,
         price: ethers.utils.parseEther("0.0002").toString(),

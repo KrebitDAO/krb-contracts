@@ -69,6 +69,16 @@ contract KRBCredentialNFT is
     uint256 public feesAvailableForWithdraw; //wei
 
     /**
+     * @notice Required credential type"
+     */
+    string public requiredCredentialType;
+
+    /**
+     * @notice Required credential value"
+     */
+    string public requiredCredentialValue;
+
+    /**
      * @dev For config updates
      */
     event Updated();
@@ -86,10 +96,14 @@ contract KRBCredentialNFT is
         string memory baseTokenURI,
         string memory metadataURI,
         uint256 initialPrice,
-        address krebitAddress
+        address krebitAddress,
+        string memory credentialType,
+        string memory credentialValue
     ) ERC721(name, symbol) {
         _baseTokenURI = baseTokenURI;
         _metadataURI = metadataURI;
+        requiredCredentialType = credentialType;
+        requiredCredentialValue = credentialValue;
         price = initialPrice;
         _KrebitContract = IKRBToken(krebitAddress);
 
@@ -120,6 +134,16 @@ contract KRBCredentialNFT is
         _unpause();
     }
 
+    //set the required credential type and value
+    function setRequiredCredential(
+        string memory credentialType,
+        string memory credentialValue
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        requiredCredentialType = credentialType;
+        requiredCredentialValue = credentialValue;
+        emit Updated();
+    }
+
     function mintWithCredential(
         address to,
         uint256 tokenId,
@@ -127,7 +151,7 @@ contract KRBCredentialNFT is
     ) public payable whenNotPaused {
         require(
             vc.credentialSubject.ethereumAddress == to,
-            "KRBCredentialNFT: Mint to address must be the credentialSubject address"
+            "Mint to address must be the vc.credentialSubject address"
         );
         VCTypesV01.validateVC(vc);
 
@@ -138,17 +162,22 @@ contract KRBCredentialNFT is
         );
 
         require(
-            keccak256(abi.encodePacked(vc._type)) ==
-                keccak256(
-                    abi.encodePacked('["VerifiableCredential","olderThan"]')
-                ),
-            "KRBCredentialNFT: credential type must be olderThan"
+            containsString(requiredCredentialType, vc._type),
+            string.concat(
+                "vc._type doesn't match requiredCredentialType: ",
+                requiredCredentialType
+            )
         );
 
         require(
-            msg.value >= price,
-            "KRBCredentialNFT: Amount sent is less than the mint price"
+            containsString(requiredCredentialValue, vc.credentialSubject.value),
+            string.concat(
+                "vc.credentialSubject.value doesn't match requiredCredentialValue: ",
+                requiredCredentialValue
+            )
         );
+
+        require(msg.value >= price, "Amount sent is less than the mint price");
 
         feesAvailableForWithdraw = feesAvailableForWithdraw.add(msg.value);
         _safeMint(to, tokenId);
@@ -177,6 +206,37 @@ contract KRBCredentialNFT is
         require(_amount <= feesAvailableForWithdraw); /// @dev Also prevents underflow
         feesAvailableForWithdraw = feesAvailableForWithdraw.sub(_amount);
         _asyncTransfer(_to, _amount);
+    }
+
+    /**
+     * @notice finds a string on another string
+     */
+    function containsString(string memory what, string memory where)
+        internal
+        pure
+        returns (bool found)
+    {
+        bytes memory whatBytes = bytes(what);
+        bytes memory whereBytes = bytes(where);
+
+        if (whereBytes.length < whatBytes.length) {
+            return false;
+        }
+
+        found = false;
+        for (uint256 i = 0; i <= whereBytes.length - whatBytes.length; i++) {
+            bool flag = true;
+            for (uint256 j = 0; j < whatBytes.length; j++)
+                if (whereBytes[i + j] != whatBytes[j]) {
+                    flag = false;
+                    break;
+                }
+            if (flag) {
+                found = true;
+                break;
+            }
+        }
+        return found;
     }
 
     // The following functions are overrides required by Solidity.

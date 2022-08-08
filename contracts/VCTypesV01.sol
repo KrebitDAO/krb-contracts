@@ -87,10 +87,6 @@ library VCTypesV01 {
             "KRBToken: issuer DID is the same as credentialSubject"
         );
         require(
-            vc.credentialSubject.price == msg.value,
-            "KRBToken: msg.value does not match credentialSubject.price"
-        );
-        require(
             vc.issuer.ethereumAddress != vc.credentialSubject.ethereumAddress,
             "KRBToken: issuer address is the same as credentialSubject"
         );

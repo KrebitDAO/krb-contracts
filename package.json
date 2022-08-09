@@ -7,6 +7,7 @@
     "test": "npx hardhat test",
     "docs": "npx solidity-docgen --solc-module solc-0.8 -t ./templates",
     "deploy-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_rinkeby.js",
+    "deploy-polygon": "npx hardhat run --network matic scripts/deploy_polygon.js",
     "deploy-xdai": "npx hardhat run --network xdai scripts/deploy_xdai.js",
     "nft-rinkeby": "npx hardhat run --network rinkeby scripts/nft_rinkeby.js"
   },

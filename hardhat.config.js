@@ -26,6 +26,10 @@ module.exports = {
       url: `https://xdai.poanetwork.dev/`,
       accounts: { mnemonic: process.env.MNEMONIC },
     },
+    matic: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: { mnemonic: process.env.MNEMONIC },
+    },
   },
   etherscan: {
     // Your API key for Etherscan
@@ -33,6 +37,7 @@ module.exports = {
     apiKey: {
       rinkeby: process.env.ETHERSCAN_API_KEY,
       xdai: "api-key",
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
     },
   },
 };

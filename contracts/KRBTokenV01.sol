@@ -24,7 +24,7 @@ import "./VCTypesV01.sol";
  * @notice {ERC20} token with OpenZeppelin Extensions:
  *
  * - Initializable,
- * - ContextUpgradeable,
+ * - ERC2771ContextUpgradeable,
  * - UUPSUpgradeable
  * - AccessControlEnumerableUpgradeable,
  * - ERC20BurnableUpgradeable,
@@ -56,6 +56,11 @@ contract KRBTokenV01 is
     bytes32 public constant GOVERN_ROLE = keccak256("GOVERN_ROLE");
 
     /**
+     * @notice ERC2771
+     */
+    address private _trustedForwarder;
+
+    /**
      * @notice Min Balance to Transfer
      */
     uint256 public minBalanceToTransfer;
@@ -71,6 +76,10 @@ contract KRBTokenV01 is
      * @notice  Min Value to Issue Verifiable Credentials
      */
     uint256 public minPriceToIssue;
+    /**
+     * @notice  Max Value to Issue Verifiable Credentials
+     */
+    uint256 public maxPriceToIssue;
     /**
      * @notice  Min Stake to Issue Verifiable Credentials
      */
@@ -124,6 +133,24 @@ contract KRBTokenV01 is
 
     event Staked(address indexed from, address indexed to, uint256 value);
 
+    /**
+     * @dev Throws if the sender is not the Govern.
+     */
+    function _checkGovern() internal view virtual {
+        require(
+            hasRole(GOVERN_ROLE, _msgSender()),
+            "KRBToken: must have govern role"
+        );
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyGovern() {
+        _checkGovern();
+        _;
+    }
+
     function initialize(
         string memory name,
         string memory symbol,
@@ -158,14 +185,15 @@ contract KRBTokenV01 is
 
     /**
     
-    * @notice Grants `DEFAULT_ADMIN_ROLE`, `GOVERN_ROLE` and `PAUSER_ROLE` to the
+    * @notice Grants `DEFAULT_ADMIN_ROLE` and `GOVERN_ROLE` to the
      * account that deploys the contract.
      *
      * - minBalanceToTransfer : 100 KRB
      * - minBalanceToReceive : 100 KRB
      * - feePercentage : 10 %
      * - minBalanceToIssue : 100 KRB
-     * - minPriceToIssue : 0.0001 ETH
+     * - minPriceToIssue : 0.00001 ETH
+     * - maxPriceToIssue : 0.0001 ETH
      * - minStakeToIssue : 1 KRB
      * - maxStakeToIssue : 10 KRB
      */
@@ -186,6 +214,7 @@ contract KRBTokenV01 is
         minBalanceToIssue = 100 * 10**decimals(); /// @dev 100 KRB
 
         minPriceToIssue = 100 * 10**12; /// @dev wei = 0.0001 ETH
+        maxPriceToIssue = 300 * 10**12; /// @dev wei = 0.0002 ETH
 
         minStakeToIssue = 1 * 10**decimals(); /// @dev 1 KRB
         maxStakeToIssue = 10 * 10**decimals(); /// @dev 10 KRB
@@ -202,10 +231,57 @@ contract KRBTokenV01 is
      * - the caller must have the `GOVERN_ROLE`.
      */
     function _authorizeUpgrade(address) internal view override {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to upgrade"
-        );
+        _checkGovern();
+    }
+
+    /**
+     * @notice ERC2771 Meta-Transactions support.
+     */
+    function isTrustedForwarder(address forwarder)
+        public
+        view
+        virtual
+        returns (bool)
+    {
+        return forwarder == _trustedForwarder;
+    }
+
+    /**
+     * @notice ERC2771 Meta-Transactions support.
+     */
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable)
+        returns (address sender)
+    {
+        if (isTrustedForwarder(msg.sender)) {
+            // The assembly code is more direct than the Solidity version using `abi.decode`.
+            /// @solidity memory-safe-assembly
+            assembly {
+                sender := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            return super._msgSender();
+        }
+    }
+
+    /**
+     * @notice ERC2771 Meta-Transactions support.
+     */
+    function _msgData()
+        internal
+        view
+        virtual
+        override(ContextUpgradeable)
+        returns (bytes calldata)
+    {
+        if (isTrustedForwarder(msg.sender)) {
+            return msg.data[:msg.data.length - 20];
+        } else {
+            return super._msgData();
+        }
     }
 
     /**
@@ -215,8 +291,9 @@ contract KRBTokenV01 is
      * @param newMinBalanceToIssue New min Balance to Issue
      * @param newFeePercentage new protocol fee percentage (0 -100)
      * @param newMinPrice New min price to Issue
+     * @param newMaxPrice New max price to Issue
      * @param newMinStake new min stake to issue
-     * @param newMinStake new max stake to issue
+     * @param trustedForwarder new trustedForwarder
      *
      * - emits Updated()
      *
@@ -231,13 +308,11 @@ contract KRBTokenV01 is
         uint256 newMinBalanceToIssue,
         uint256 newFeePercentage,
         uint256 newMinPrice,
+        uint256 newMaxPrice,
         uint256 newMinStake,
-        uint256 newMaxStake
-    ) public {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to change parameters"
-        );
+        uint256 newMaxStake,
+        address trustedForwarder
+    ) public onlyGovern {
         minBalanceToTransfer = newMinBalanceToTransfer;
         minBalanceToReceive = newMinBalanceToReceive;
         minBalanceToIssue = newMinBalanceToIssue;
@@ -247,15 +322,21 @@ contract KRBTokenV01 is
             "KRBToken: bad percentage value"
         );
         feePercentage = newFeePercentage;
-
+        require(
+            newMaxPrice >= newMinPrice,
+            "KRBToken: newMaxPrice must be greater or equal than newMinPrice"
+        );
         minPriceToIssue = newMinPrice;
+        maxPriceToIssue = newMaxPrice;
 
         require(
-            newMaxStake > newMinStake,
+            newMaxStake >= newMinStake,
             "KRBToken: newMaxStake must be greater or equal than newMinStake"
         );
         minStakeToIssue = newMinStake;
         maxStakeToIssue = newMaxStake;
+
+        _trustedForwarder = trustedForwarder;
 
         emit Updated();
     }
@@ -291,6 +372,22 @@ contract KRBTokenV01 is
     }
 
     /**
+     * @dev Destroys `_stake` token stake from `issuer`
+     */
+    function _burnStake(address _issuer, uint256 _stake) internal virtual {
+        require(
+            _issuer != address(0),
+            "KRBToken: burn stake from the zero address"
+        );
+
+        //remove Issuer stake
+        if (stakes[_issuer] >= _stake) {
+            stakes[_issuer] = stakes[_issuer].sub(_stake);
+            emit Staked(_issuer, address(0), _stake);
+        }
+    }
+
+    /**
      *
      * @notice Creates `amount` new tokens for `to`.
      *
@@ -300,11 +397,7 @@ contract KRBTokenV01 is
      *
      * - the caller must have the `GOVERN_ROLE`.
      */
-    function mint(address to, uint256 amount) public virtual {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to mint"
-        );
+    function mint(address to, uint256 amount) public virtual onlyGovern {
         _mint(to, amount);
     }
 
@@ -318,21 +411,12 @@ contract KRBTokenV01 is
      * Requirements:
      * - the caller must have the `GOVERN_ROLE`.
      */
-    function burnStake(address issuer, uint256 stake) public virtual {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to burn"
-        );
-        require(
-            issuer != address(0),
-            "KRBToken: burn stake from the zero address"
-        );
-
-        //remove Issuer stake
-        if (stakes[issuer] >= stake) {
-            stakes[issuer] = stakes[issuer].sub(stake);
-            emit Staked(issuer, address(0), stake);
-        }
+    function burnStake(address issuer, uint256 stake)
+        public
+        virtual
+        onlyGovern
+    {
+        _burnStake(issuer, stake);
     }
 
     /**
@@ -342,13 +426,9 @@ contract KRBTokenV01 is
      *
      * Requirements:
      *
-     * - the caller must have the `PAUSER_ROLE`.
+     * - the caller must have the `GOVERN_ROLE`.
      */
-    function pause() public virtual {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to pause"
-        );
+    function pause() public virtual onlyGovern {
         _pause();
     }
 
@@ -359,13 +439,9 @@ contract KRBTokenV01 is
      *
      * Requirements:
      *
-     * - the caller must have the `PAUSER_ROLE`.
+     * - the caller must have the `GOVERN_ROLE`.
      */
-    function unpause() public virtual {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to unpause"
-        );
+    function unpause() public virtual onlyGovern {
         _unpause();
     }
 
@@ -478,7 +554,10 @@ contract KRBTokenV01 is
             msg.value >= minPriceToIssue,
             "KRBToken: msg.value must be greater than minPriceToIssue"
         );
-
+        require(
+            msg.value <= maxPriceToIssue,
+            "KRBToken: msg.value must be less than maxPriceToIssue"
+        );
         require(
             vc.credentialSubject.price == msg.value,
             "KRBToken: msg.value does not match credentialSubject.price"
@@ -508,7 +587,7 @@ contract KRBTokenV01 is
         _burn(vc.issuer.ethereumAddress, _stake);
         stakes[vc.issuer.ethereumAddress] = stakes[vc.issuer.ethereumAddress]
             .add(_stake);
-        emit Staked(vc.issuer.ethereumAddress, address(0), _stake);
+        emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
         registry[uuid] = VerifiableData(Status.Issued, 0x0);
         emit Issued(uuid, vc);
 
@@ -566,12 +645,7 @@ contract KRBTokenV01 is
         );
 
         //remove Issuer stake
-        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-            stakes[vc.issuer.ethereumAddress] = stakes[
-                vc.issuer.ethereumAddress
-            ].sub(_stake);
-            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-        }
+        _burnStake(vc.issuer.ethereumAddress, _stake);
         _mint(vc.issuer.ethereumAddress, _stake);
 
         //discard rewards
@@ -615,12 +689,7 @@ contract KRBTokenV01 is
         );
 
         //remove Issuer stake
-        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-            stakes[vc.issuer.ethereumAddress] = stakes[
-                vc.issuer.ethereumAddress
-            ].sub(_stake);
-            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-        }
+        _burnStake(vc.issuer.ethereumAddress, _stake);
         _mint(vc.issuer.ethereumAddress, _stake);
 
         //discard rewards
@@ -663,12 +732,7 @@ contract KRBTokenV01 is
         );
 
         //remove Issuer stake
-        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-            stakes[vc.issuer.ethereumAddress] = stakes[
-                vc.issuer.ethereumAddress
-            ].sub(_stake);
-            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-        }
+        _burnStake(vc.issuer.ethereumAddress, _stake);
         _mint(vc.issuer.ethereumAddress, _stake);
 
         //reward from subject is lost
@@ -691,12 +755,7 @@ contract KRBTokenV01 is
         if (block.timestamp > vc.credentialSubject.exp) {
             uint256 _stake = vc.credentialSubject.stake * 10**decimals();
             //remove Issuer stake
-            if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-                stakes[vc.issuer.ethereumAddress] = stakes[
-                    vc.issuer.ethereumAddress
-                ].sub(_stake);
-                emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-            }
+            _burnStake(vc.issuer.ethereumAddress, _stake);
             _mint(vc.issuer.ethereumAddress, _stake);
             //rewards remain unless VC is disputed
             registry[uuid].credentialStatus = Status.Expired;
@@ -717,11 +776,7 @@ contract KRBTokenV01 is
     function disputeVCByGovern(
         VCTypesV01.VerifiableCredential memory vc,
         VCTypesV01.VerifiableCredential memory disputeVC
-    ) public returns (bool) {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to resolve dispute"
-        );
+    ) public onlyGovern returns (bool) {
         require(
             keccak256(abi.encodePacked(disputeVC._type)) ==
                 keccak256(
@@ -761,12 +816,7 @@ contract KRBTokenV01 is
 
         uint256 _stake = vc.credentialSubject.stake * 10**decimals();
         //Slash stake from Issuer
-        if (stakes[vc.issuer.ethereumAddress] >= _stake) {
-            stakes[vc.issuer.ethereumAddress] = stakes[
-                vc.issuer.ethereumAddress
-            ].sub(_stake);
-            emit Staked(address(0), vc.issuer.ethereumAddress, _stake);
-        }
+        _burnStake(vc.issuer.ethereumAddress, _stake);
 
         //Revert rewards from issuer and credentialSubject
         uint256 _reward = VCTypesV01.getReward(
@@ -796,11 +846,8 @@ contract KRBTokenV01 is
     function withdrawFees(address payable _to, uint256 _amount)
         external
         nonReentrant
+        onlyGovern
     {
-        require(
-            hasRole(GOVERN_ROLE, _msgSender()),
-            "KRBToken: must have govern role to withdraw"
-        );
         require(_amount <= feesAvailableForWithdraw); /// @dev Also prevents underflow
         feesAvailableForWithdraw = feesAvailableForWithdraw.sub(_amount);
         _asyncTransfer(_to, _amount);

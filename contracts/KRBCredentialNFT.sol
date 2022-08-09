@@ -180,6 +180,8 @@ contract KRBCredentialNFT is
         require(msg.value >= price, "Amount sent is less than the mint price");
 
         feesAvailableForWithdraw = feesAvailableForWithdraw.add(msg.value);
+        //TODO: mint Credential as NFT:
+        //tokenId = uint256(VCTypesV01.getVerifiableCredential(vc));
         _safeMint(to, tokenId);
     }
 

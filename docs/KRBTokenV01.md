@@ -1,7 +1,7 @@
 {ERC20} token with OpenZeppelin Extensions:
 
 - Initializable,
-- ContextUpgradeable,
+- ERC2771ContextUpgradeable,
 - UUPSUpgradeable
 - AccessControlEnumerableUpgradeable,
 - ERC20BurnableUpgradeable,
@@ -19,6 +19,15 @@ to other accounts.
 
 
 ## Functions
+### _checkGovern
+```solidity
+  function _checkGovern(
+  ) internal
+```
+
+Throws if the sender is not the Govern.
+
+
 ### initialize
 ```solidity
   function initialize(
@@ -44,14 +53,15 @@ See {ERC20-constructor}.
   function __KRBTokenV01_init_unchained(
   ) internal
 ```
-Grants `DEFAULT_ADMIN_ROLE`, `GOVERN_ROLE` and `PAUSER_ROLE` to the
+Grants `DEFAULT_ADMIN_ROLE` and `GOVERN_ROLE` to the
 account that deploys the contract.
 
 - minBalanceToTransfer : 100 KRB
 - minBalanceToReceive : 100 KRB
 - feePercentage : 10 %
 - minBalanceToIssue : 100 KRB
-- minPriceToIssue : 0.0001 ETH
+- minPriceToIssue : 0.00001 ETH
+- maxPriceToIssue : 0.0001 ETH
 - minStakeToIssue : 1 KRB
 - maxStakeToIssue : 10 KRB
 
@@ -73,6 +83,33 @@ Requirements:
 
 
 
+### isTrustedForwarder
+```solidity
+  function isTrustedForwarder(
+  ) public returns (bool)
+```
+ERC2771 Meta-Transactions support.
+
+
+
+### _msgSender
+```solidity
+  function _msgSender(
+  ) internal returns (address sender)
+```
+ERC2771 Meta-Transactions support.
+
+
+
+### _msgData
+```solidity
+  function _msgData(
+  ) internal returns (bytes)
+```
+ERC2771 Meta-Transactions support.
+
+
+
 ### updateParameters
 ```solidity
   function updateParameters(
@@ -81,8 +118,9 @@ Requirements:
     uint256 newMinBalanceToIssue,
     uint256 newFeePercentage,
     uint256 newMinPrice,
+    uint256 newMaxPrice,
     uint256 newMinStake,
-    uint256 newMinStake
+    uint256 trustedForwarder
   ) public
 ```
 Updates all Protocol Parameters
@@ -96,8 +134,9 @@ Updates all Protocol Parameters
 |`newMinBalanceToIssue` | uint256 | New min Balance to Issue
 |`newFeePercentage` | uint256 | new protocol fee percentage (0 -100)
 |`newMinPrice` | uint256 | New min price to Issue
+|`newMaxPrice` | uint256 | New max price to Issue
 |`newMinStake` | uint256 | new min stake to issue
-|`newMinStake` | uint256 | new max stake to issue
+|`trustedForwarder` | uint256 | new trustedForwarder
 
 - emits Updated()
 
@@ -117,6 +156,15 @@ Checks min balances before Issue / Mint / Transfer.
 Requirements:
 
 - the caller must have the `GOVERN_ROLE`.
+
+
+### _burnStake
+```solidity
+  function _burnStake(
+  ) internal
+```
+
+Destroys `_stake` token stake from `issuer`
 
 
 ### mint
@@ -167,7 +215,7 @@ See {ERC20Pausable} and {Pausable-_pause}.
 
 Requirements:
 
-- the caller must have the `PAUSER_ROLE`.
+- the caller must have the `GOVERN_ROLE`.
 
 
 
@@ -182,7 +230,7 @@ See {ERC20Pausable} and {Pausable-_unpause}.
 
 Requirements:
 
-- the caller must have the `PAUSER_ROLE`.
+- the caller must have the `GOVERN_ROLE`.
 
 
 

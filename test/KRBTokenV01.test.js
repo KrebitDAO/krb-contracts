@@ -183,12 +183,12 @@ describe("KRBTokenV01", function () {
         (2 * 10 ** 18).toString(),
         (20).toString(),
         ethers.utils.parseEther("0.0002").toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (3 * 10 ** 18).toString(),
-        (100 * 10 ** 18).toString()
+        (100 * 10 ** 18).toString(),
+        ethers.constants.AddressZero
       )
-    ).to.be.revertedWith(
-      "KRBToken: must have govern role to change parameters"
-    );
+    ).to.be.revertedWith("KRBToken: must have govern role");
     expect(await this.krbToken.minBalanceToTransfer()).to.equal(
       (100 * 10 ** 18).toString()
     );
@@ -209,8 +209,10 @@ describe("KRBTokenV01", function () {
         (2 * 10 ** 18).toString(),
         (20).toString(),
         ethers.utils.parseEther("0.0002").toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (3 * 10 ** 18).toString(),
-        (100 * 10 ** 18).toString()
+        (100 * 10 ** 18).toString(),
+        ethers.constants.AddressZero
       )
     ).to.emit(this.krbToken, "Updated");
     expect(await this.krbToken.minBalanceToTransfer()).to.equal(
@@ -242,8 +244,10 @@ describe("KRBTokenV01", function () {
         (2 * 10 ** 18).toString(),
         (20).toString(),
         ethers.utils.parseEther("0.0002").toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (10 * 10 ** 18).toString(),
-        (1 * 10 ** 18).toString()
+        (1 * 10 ** 18).toString(),
+        ethers.constants.AddressZero
       )
     ).to.be.revertedWith(
       "KRBToken: newMaxStake must be greater or equal than newMinStake"
@@ -378,8 +382,10 @@ describe("KRBTokenV01", function () {
         (2 * 10 ** 18).toString(),
         (20).toString(),
         ethers.utils.parseEther("0.0001").toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (3 * 10 ** 18).toString(),
-        (100 * 10 ** 18).toString()
+        (100 * 10 ** 18).toString(),
+        ethers.constants.AddressZero
       )
     ).to.emit(this.krbToken, "Updated");
     expect(await this.krbToken.minPriceToIssue()).to.equal(
@@ -544,8 +550,10 @@ describe("KRBTokenV01", function () {
         (2 * 10 ** 18).toString(),
         (20).toString(),
         ethers.utils.parseEther("0").toString(),
+        ethers.utils.parseEther("0.0002").toString(),
         (3 * 10 ** 18).toString(),
-        (100 * 10 ** 18).toString()
+        (100 * 10 ** 18).toString(),
+        ethers.constants.AddressZero
       )
     ).to.emit(this.krbToken, "Updated");
     expect(await this.krbToken.minPriceToIssue()).to.equal(

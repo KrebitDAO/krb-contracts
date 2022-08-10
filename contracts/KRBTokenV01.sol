@@ -113,23 +113,23 @@ contract KRBTokenV01 is
     }
     struct VerifiableData {
         Status credentialStatus;
-        bytes32 disputedBy;
+        uint256 disputedBy;
     }
 
     /// @dev Mapping of rewarded VCTypesV01.VerifiableCredentials. Key is a hash of the vc data
-    mapping(bytes32 => VerifiableData) public registry;
+    mapping(uint256 => VerifiableData) public registry;
 
     /**
      * @dev The stakes for each Issuer.
      */
     mapping(address => uint256) internal stakes;
 
-    event Issued(bytes32 uuid, VCTypesV01.VerifiableCredential vc);
-    event Disputed(bytes32 uuid, bytes32 disputedBy);
-    event Revoked(bytes32 uuid, string reason);
-    event Suspended(bytes32 uuid, string reason);
-    event Expired(bytes32 uuid);
-    event Deleted(bytes32 uuid, string reason);
+    event Issued(uint256 uuid, VCTypesV01.VerifiableCredential vc);
+    event Disputed(uint256 uuid, uint256 disputedBy);
+    event Revoked(uint256 uuid, string reason);
+    event Suspended(uint256 uuid, string reason);
+    event Expired(uint256 uuid);
+    event Deleted(uint256 uuid, string reason);
 
     event Staked(address indexed from, address indexed to, uint256 value);
 
@@ -214,7 +214,7 @@ contract KRBTokenV01 is
         minBalanceToIssue = 100 * 10**decimals(); /// @dev 100 KRB
 
         minPriceToIssue = 100 * 10**12; /// @dev wei = 0.0001 ETH
-        maxPriceToIssue = 300 * 10**12; /// @dev wei = 0.0002 ETH
+        maxPriceToIssue = 300 * 10**12; /// @dev wei = 0.0003 ETH
 
         minStakeToIssue = 1 * 10**decimals(); /// @dev 1 KRB
         maxStakeToIssue = 10 * 10**decimals(); /// @dev 10 KRB
@@ -500,9 +500,9 @@ contract KRBTokenV01 is
     function getUuid(VCTypesV01.VerifiableCredential memory vc)
         public
         pure
-        returns (bytes32)
+        returns (uint256)
     {
-        return VCTypesV01.getVerifiableCredential(vc);
+        return uint256(VCTypesV01.getVerifiableCredential(vc));
     }
 
     /**
@@ -517,7 +517,7 @@ contract KRBTokenV01 is
         view
         returns (string memory)
     {
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
         Status temp = registry[uuid].credentialStatus;
         if (temp == Status.None) return "None";
         if (temp == Status.Issued) return "Issued";
@@ -563,9 +563,13 @@ contract KRBTokenV01 is
             "KRBToken: msg.value does not match credentialSubject.price"
         );
 
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
 
-        validateSignedData(vc.issuer.ethereumAddress, uuid, proofValue);
+        validateSignedData(
+            vc.issuer.ethereumAddress,
+            VCTypesV01.getVerifiableCredential(vc),
+            proofValue
+        );
 
         VCTypesV01.validateVC(vc);
 
@@ -628,7 +632,7 @@ contract KRBTokenV01 is
             "KRBToken: sender must be the credentialSubject address"
         );
 
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
 
         require(
             registry[uuid].credentialStatus == Status.Issued,
@@ -672,7 +676,7 @@ contract KRBTokenV01 is
             vc.issuer.ethereumAddress == _msgSender(),
             "KRBToken: sender must be the issuer address"
         );
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
 
         require(
             registry[uuid].credentialStatus == Status.Issued,
@@ -716,7 +720,7 @@ contract KRBTokenV01 is
             vc.issuer.ethereumAddress == _msgSender(),
             "KRBToken: sender must be the issuer address"
         );
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
         require(
             registry[uuid].credentialStatus == Status.Issued,
             "KRBToken: state is not Issued"
@@ -750,7 +754,7 @@ contract KRBTokenV01 is
         external
         returns (bool)
     {
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
 
         if (block.timestamp > vc.credentialSubject.exp) {
             uint256 _stake = vc.credentialSubject.stake * 10**decimals();
@@ -798,7 +802,7 @@ contract KRBTokenV01 is
 
         VCTypesV01.validateVC(disputeVC);
 
-        bytes32 uuid = getUuid(vc);
+        uint256 uuid = getUuid(vc);
 
         require(
             registry[uuid].credentialStatus != Status.None &&
@@ -806,7 +810,7 @@ contract KRBTokenV01 is
             "KRBToken: VC state already disputed"
         );
 
-        bytes32 disputeUuid = getUuid(disputeVC);
+        uint256 disputeUuid = getUuid(disputeVC);
         registry[uuid].credentialStatus = Status.Disputed;
         registry[uuid].disputedBy = disputeUuid;
         emit Disputed(uuid, disputeUuid);

@@ -336,6 +336,7 @@ describe("KRBTokenV01", function () {
     //console.log(issuerBalance);
 
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    //console.log("uuid:", uuid);
     await expect(
       this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
         value: ethers.utils.parseEther("0.0001").toString(),
@@ -365,6 +366,7 @@ describe("KRBTokenV01", function () {
     //console.log(issuerBalance);
 
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    //console.log("uuid:", uuid);
     await expect(
       this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
         value: ethers.utils.parseEther("0.0002").toString(),
@@ -415,6 +417,7 @@ describe("KRBTokenV01", function () {
     //console.log(issuerBalance);
 
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    //console.log("uuid:", uuid);
     await expect(
       this.krbTokenSubject.registerVC(this.verifiableCredential, proofValue, {
         value: ethers.utils.parseEther("0.0001").toString(),
@@ -453,6 +456,7 @@ describe("KRBTokenV01", function () {
     //console.log(issuerBalance);
 
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    //console.log("uuid:", uuid);
     await expect(
       await this.krbTokenSubject.registerVC(
         this.verifiableCredential,
@@ -507,6 +511,7 @@ describe("KRBTokenV01", function () {
 
   it("revokeVC", async function () {
     let uuid = await this.krbToken.getUuid(this.verifiableCredential);
+    //console.log("uuid:", uuid);
     await expect(
       this.krbTokenIssuer.revokeVC(this.verifiableCredential, "Test Revokation")
     )
@@ -618,6 +623,7 @@ describe("KRBTokenV01", function () {
 
     //Suspend
     let uuid = await this.krbToken.getUuid(vc);
+    //console.log("uuid:", uuid);
     await expect(this.krbTokenIssuer.suspendVC(vc, "Test Suspension"))
       .to.emit(this.krbToken, "Suspended")
       .withArgs(uuid, "Test Suspension");
@@ -820,6 +826,7 @@ describe("KRBTokenV01", function () {
     ); // 6 KRB
 
     let uuid = await this.krbToken.getUuid(vc);
+    //console.log("uuid:", uuid);
 
     let disputeVC = {
       _context:

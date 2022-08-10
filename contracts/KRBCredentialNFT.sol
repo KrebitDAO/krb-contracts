@@ -181,7 +181,7 @@ contract KRBCredentialNFT is
 
         feesAvailableForWithdraw = feesAvailableForWithdraw.add(msg.value);
         //TODO: mint Credential as NFT:
-        //tokenId = uint256(VCTypesV01.getVerifiableCredential(vc));
+        //tokenId = _KrebitContract.getUuid(vc):
         _safeMint(to, tokenId);
     }
 

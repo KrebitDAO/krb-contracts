@@ -9,7 +9,7 @@
     "deploy-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_rinkeby.js",
     "deploy-polygon": "npx hardhat run --network matic scripts/deploy_polygon.js",
     "deploy-xdai": "npx hardhat run --network xdai scripts/deploy_xdai.js",
-    "nft-rinkeby": "npx hardhat run --network rinkeby scripts/nft_rinkeby.js"
+    "deploy-nftdrop-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_nftdrop_rinkeby.js"
   },
   "repository": {
     "type": "git",

@@ -2,9 +2,11 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const KRBCredentialNFT = await ethers.getContractFactory("KRBCredentialNFT");
-  console.log("Deploying KRBCredentialNFT...");
-  const krbNFT = await KRBCredentialNFT.deploy(
+  const CredentialNFTDrop = await ethers.getContractFactory(
+    "CredentialNFTDrop"
+  );
+  console.log("Deploying CredentialNFTDrop...");
+  const krbNFT = await CredentialNFTDrop.deploy(
     "TestBuddies",
     "krbNFT",
     "ipfs://QmS66LWcinekhXibiiZwJvtHNuCHxzZvedneQDZW1ximPJ/",
@@ -15,7 +17,7 @@ async function main() {
     "21"
   );
   await krbNFT.deployed();
-  console.log("KRBCredentialNFT deployed to:", krbNFT.address);
+  console.log("CredentialNFTDrop deployed to:", krbNFT.address);
 }
 
 main();

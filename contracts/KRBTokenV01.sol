@@ -58,7 +58,7 @@ contract KRBTokenV01 is
     /**
      * @notice ERC2771
      */
-    address private _trustedForwarder;
+    address public trustedForwarder;
 
     /**
      * @notice Min Balance to Transfer
@@ -243,7 +243,7 @@ contract KRBTokenV01 is
         virtual
         returns (bool)
     {
-        return forwarder == _trustedForwarder;
+        return forwarder == trustedForwarder;
     }
 
     /**
@@ -293,7 +293,7 @@ contract KRBTokenV01 is
      * @param newMinPrice New min price to Issue
      * @param newMaxPrice New max price to Issue
      * @param newMinStake new min stake to issue
-     * @param trustedForwarder new trustedForwarder
+     * @param newTrustedForwarder new trustedForwarder
      *
      * - emits Updated()
      *
@@ -311,7 +311,7 @@ contract KRBTokenV01 is
         uint256 newMaxPrice,
         uint256 newMinStake,
         uint256 newMaxStake,
-        address trustedForwarder
+        address newTrustedForwarder
     ) public onlyGovern {
         minBalanceToTransfer = newMinBalanceToTransfer;
         minBalanceToReceive = newMinBalanceToReceive;
@@ -336,7 +336,7 @@ contract KRBTokenV01 is
         minStakeToIssue = newMinStake;
         maxStakeToIssue = newMaxStake;
 
-        _trustedForwarder = trustedForwarder;
+        trustedForwarder = newTrustedForwarder;
 
         emit Updated();
     }

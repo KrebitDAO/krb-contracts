@@ -3,7 +3,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-etherscan");
-
+require("@nomicfoundation/hardhat-chai-matchers");
 require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */

@@ -1,10 +1,8 @@
-// test/krbToken.test.js
+import pkg from "hardhat";
+const { ethers, upgrades } = pkg;
+import { expect } from "chai";
 
-const { ethers, upgrades } = require("hardhat");
-const { expect } = require("chai");
-
-const { TypedMessage } = require("eth-sig-util");
-
+import eip712vc from "@krebitdao/eip712-vc";
 const {
   EIP712VC,
   DEFAULT_CONTEXT,
@@ -12,7 +10,7 @@ const {
   DEFAULT_VC_TYPE,
   getKrebitCredentialTypes,
   getEIP712Credential,
-} = require("@krebitdao/eip712-vc/");
+} = eip712vc;
 
 const vcTypes = {
   VerifiableCredential: [

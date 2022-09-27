@@ -82,8 +82,8 @@ library VCTypesV01 {
             "KRBToken: bad trust percentage value"
         );
         require(
-            keccak256(abi.encodePacked(vc.issuer.id)) !=
-                keccak256(abi.encodePacked(vc.credentialSubject.id)),
+            keccak256(abi.encode(vc.issuer.id)) !=
+                keccak256(abi.encode(vc.credentialSubject.id)),
             "KRBToken: issuer DID is the same as credentialSubject"
         );
         require(

@@ -782,11 +782,9 @@ contract KRBTokenV01 is
         VCTypesV01.VerifiableCredential memory disputeVC
     ) public onlyGovern returns (bool) {
         require(
-            keccak256(abi.encodePacked(disputeVC._type)) ==
+            keccak256(abi.encode(disputeVC._type)) ==
                 keccak256(
-                    abi.encodePacked(
-                        '["VerifiableCredential","DisputeCredential"]'
-                    )
+                    abi.encode('["VerifiableCredential","DisputeCredential"]')
                 ),
             "KRBToken: dispute claim type must be DisputeCredential"
         );
@@ -795,8 +793,8 @@ contract KRBTokenV01 is
             "KRBToken: issuer must be the Govern address"
         );
         require(
-            keccak256(abi.encodePacked(disputeVC.credentialSubject.id)) ==
-                keccak256(abi.encodePacked(vc.id)),
+            keccak256(abi.encode(disputeVC.credentialSubject.id)) ==
+                keccak256(abi.encode(vc.id)),
             "KRBToken: disputeVC credentialSubject id differes from VC id"
         );
 

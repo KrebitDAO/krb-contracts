@@ -65,6 +65,42 @@ describe("KRBCredentialNFT", function () {
       chainId: await this.issuer.getChainId(),
       verifyingContract: this.krbToken.address,
     };
+
+    // The data to sign
+    let issuanceDate = Date.now();
+    let expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + 3);
+
+    let credential = {
+      "@context": [DEFAULT_CONTEXT, EIP712_CONTEXT],
+      type: [DEFAULT_VC_TYPE, "olderThan"],
+      id: "https://example.org/person/1234",
+      issuer: {
+        id: "did:issuer",
+        ethereumAddress: this.accounts[1],
+      },
+      credentialSubject: {
+        id: "did:user",
+        ethereumAddress: this.accounts[2],
+        type: "olderThan",
+        value: '{"value":"21","evidence":""}',
+        typeSchema: "ceramic://def",
+        encrypted: "null",
+        trust: 50,
+        stake: 6,
+        price: ethers.utils.parseEther("0.0002").toString(),
+        nbf: Math.floor(issuanceDate / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
+      },
+      credentialSchema: {
+        id: "https://krebit.id/schemas/v1",
+        type: "Eip712SchemaValidator2021",
+      },
+      issuanceDate: new Date(issuanceDate).toISOString(),
+      expirationDate: new Date(expirationDate).toISOString(),
+    };
+
+    this.eip712credential = getEIP712Credential(credential);
   });
   it("symbol", async function () {
     expect(await this.krbNFT.symbol()).to.equal("krbNFT");
@@ -96,5 +132,80 @@ describe("KRBCredentialNFT", function () {
     expect(await this.krbNFT.price()).to.equal(
       ethers.utils.parseEther("0.0002").toString()
     );
+  });
+
+  it("registerVC with eip712-vc", async function () {
+    // The data to sign
+    let issuanceDate = Date.now();
+    let expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + 3);
+
+    //console.log("eip712credential:", eip712credential);
+
+    let krebitTypes = getKrebitCredentialTypes();
+
+    let eip712vc = new EIP712VC(this.domain);
+
+    const vc = await eip712vc.createEIP712VerifiableCredential(
+      this.eip712credential,
+      krebitTypes,
+      async (data) => {
+        return await this.issuer._signTypedData(
+          this.domain,
+          krebitTypes,
+          this.eip712credential
+        );
+      }
+    );
+
+    //console.log(vc);
+
+    //Issue
+    await expect(
+      this.krbTokenSubject.registerVC(
+        this.eip712credential,
+        vc.proof.proofValue,
+        {
+          value: ethers.utils.parseEther("0.0002").toString(),
+        }
+      )
+    ).to.emit(this.krbToken, "Issued");
+    expect(await this.krbToken.getVCStatus(this.eip712credential)).to.equal(
+      "Issued"
+    );
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[2])).toString()
+    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[1])).toString()
+    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
+  });
+
+  it("tokenId not minted yet", async function () {
+    await expect(this.krbNFT.ownerOf(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+  });
+
+  it("mints emits Transfer", async function () {
+    await expect(
+      this.krbNFT.mintWithCredential(
+        this.accounts[2],
+        1,
+        this.eip712credential,
+        {
+          value: ethers.utils.parseEther("0.0002").toString(),
+        }
+      )
+    )
+      .to.emit(this.krbNFT, "Transfer")
+      .withArgs(
+        ethers.constants.AddressZero,
+        this.accounts[2],
+        (1).toString() // TokenId = 1
+      );
   });
 });

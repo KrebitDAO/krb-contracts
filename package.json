@@ -8,10 +8,9 @@
     "test": "npx hardhat test test/*",
     "clean": "rm -Rf node_modules/",
     "docs": "npx solidity-docgen --solc-module solc-0.8 -t ./templates",
-    "deploy-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_rinkeby.js",
-    "deploy-polygon": "npx hardhat run --network matic scripts/deploy_polygon.js",
-    "deploy-xdai": "npx hardhat run --network xdai scripts/deploy_xdai.js",
-    "deploy-nftdrop-rinkeby": "npx hardhat run --network rinkeby scripts/deploy_nftdrop_rinkeby.js"
+    "deploy-krb": "npx hardhat run --network matic scripts/deployKRBToken.cjs",
+    "deploy-nft": "npx hardhat run --network matic scripts/deployKrebitNFT.cjs",
+    "deploy-nftdrop": "npx hardhat run --network matic scripts/deployNFTDrop.cjs"
   },
   "repository": {
     "type": "git",

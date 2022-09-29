@@ -2,6 +2,8 @@
 const { ethers } = require("hardhat");
 
 async function main() {
+  this.accounts = await ethers.provider.listAccounts();
+  console.log("Deploying from address:", this.accounts[0]);
   const CredentialNFTDrop = await ethers.getContractFactory(
     "CredentialNFTDrop"
   );

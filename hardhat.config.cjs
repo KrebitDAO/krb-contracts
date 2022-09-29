@@ -18,12 +18,8 @@ module.exports = {
     },
   },
   networks: {
-    rinkeby: {
-      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts: { mnemonic: process.env.MNEMONIC },
-    },
-    xdai: {
-      url: `https://xdai.poanetwork.dev/`,
+    goerli: {
+      url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: { mnemonic: process.env.MNEMONIC },
     },
     matic: {
@@ -35,8 +31,7 @@ module.exports = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: {
-      rinkeby: process.env.ETHERSCAN_API_KEY,
-      xdai: "api-key",
+      goerli: process.env.ETHERSCAN_API_KEY,
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
     },
   },

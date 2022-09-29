@@ -1,7 +1,8 @@
-// scripts/deploy_xdai.js
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
+  this.accounts = await ethers.provider.listAccounts();
+  console.log("Deploying from address:", this.accounts[0]);
   const KRBTokenV01 = await ethers.getContractFactory("KRBTokenV01");
   console.log("Deploying KRBTokenV01...");
   const krbToken = await upgrades.deployProxy(

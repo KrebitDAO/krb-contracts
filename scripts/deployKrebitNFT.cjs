@@ -9,8 +9,8 @@ async function main() {
   const krbNFT = await upgrades.deployProxy(
     KrebitNFTV01,
     [
-      "ipfs://QmeXtnaY4gLasVMpevXUyQhnmoVmvqtSqfSdpKTbPuToxp/{id}",
-      "ipfs://QmbMxWXQWvJTWJMoyXmjEox5NwgqggB8KsVswsHf2XQLxB",
+      "https://node401.krebit.id/metadata/{id}",
+      "ipfs://QmVqGEjneXJv1C8UkXYfjPyUmYAJce6todRRJGm8FajNKL/contract.json",
       0,
       "0xee524d0b396C8F9BcfD7Ac336d17aa0397a32CbE",
     ],

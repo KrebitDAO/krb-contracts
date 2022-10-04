@@ -213,8 +213,8 @@ contract KRBTokenV01 is
 
         minBalanceToIssue = 100 * 10**decimals(); /// @dev 100 KRB
 
-        minPriceToIssue = 100 * 10**12; /// @dev wei = 0.0001 ETH
-        maxPriceToIssue = 300 * 10**12; /// @dev wei = 0.0003 ETH
+        minPriceToIssue = 0;
+        maxPriceToIssue = 1000 * 10**18;
 
         minStakeToIssue = 1 * 10**decimals(); /// @dev 1 KRB
         maxStakeToIssue = 10 * 10**decimals(); /// @dev 10 KRB
@@ -475,7 +475,7 @@ contract KRBTokenV01 is
         address signer,
         bytes32 structHash,
         bytes memory signature
-    ) internal view {
+    ) public view {
         bytes32 digest = _hashTypedDataV4(structHash);
 
         address recoveredAddress = ECDSAUpgradeable.recover(digest, signature);
@@ -546,7 +546,8 @@ contract KRBTokenV01 is
         bytes memory proofValue
     ) public payable returns (bool) {
         require(
-            vc.credentialSubject.ethereumAddress == _msgSender(),
+            hasRole(GOVERN_ROLE, _msgSender()) ||
+                vc.credentialSubject.ethereumAddress == _msgSender(),
             "KRBToken: sender must be the credentialSubject address"
         );
 
@@ -628,7 +629,8 @@ contract KRBTokenV01 is
         string memory reason
     ) public returns (bool) {
         require(
-            vc.credentialSubject.ethereumAddress == _msgSender(),
+            hasRole(GOVERN_ROLE, _msgSender()) ||
+                vc.credentialSubject.ethereumAddress == _msgSender(),
             "KRBToken: sender must be the credentialSubject address"
         );
 

@@ -8,6 +8,8 @@
     "test": "npx hardhat test test/*",
     "clean": "rm -Rf node_modules/",
     "docs": "npx solidity-docgen --solc-module solc-0.8 -t ./templates",
+    "deploy-mumbai": "npx hardhat run --network polygonMumbai scripts/deploy.cjs",
+    "deploy-matic": "npx hardhat run --network matic scripts/deploy.cjs",
     "deploy-krb": "npx hardhat run --network matic scripts/deployKRBToken.cjs",
     "deploy-nft": "npx hardhat run --network matic scripts/deployKrebitNFT.cjs",
     "deploy-nftdrop": "npx hardhat run --network matic scripts/deployNFTDrop.cjs"

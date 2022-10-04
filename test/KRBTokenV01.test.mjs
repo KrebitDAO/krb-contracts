@@ -157,7 +157,7 @@ describe("KRBTokenV01", function () {
 
   it("minPriceToIssue", async function () {
     expect(await this.krbToken.minPriceToIssue()).to.equal(
-      ethers.utils.parseEther("0.0001").toString()
+      ethers.utils.parseEther("0").toString()
     );
   });
 
@@ -195,7 +195,7 @@ describe("KRBTokenV01", function () {
     );
     expect(await this.krbToken.feePercentage()).to.equal((10).toString());
     expect(await this.krbToken.minPriceToIssue()).to.equal(
-      ethers.utils.parseEther("0.0001").toString()
+      ethers.utils.parseEther("0").toString()
     );
   });
 

@@ -110,52 +110,6 @@ describe("KrebitNFTV01", function () {
     };
 
     this.eip712credential = getEIP712Credential(credential);
-
-    const credentialTypes = [
-      "Issuer",
-      "LegalName",
-      "GovernmentId",
-      "Location",
-      "AgeGT18",
-      "AgeGT21",
-      "Email",
-      "PhoneNumber",
-      "Twitter",
-      "TwitterFollowersGT1K",
-      "TwitterFollowersGT10K",
-      "TwitterFollowersGT100K",
-      "TwitterFollowersGT1M",
-      "Discord",
-      "DiscordGuildOwner",
-      "DiscordGuildMember",
-      "Github",
-      "GithubFollowersGT10",
-      "GithubFollowersGT100",
-      "GithubOrgMember",
-      "GithubRepoOwner",
-      "GithubRepoForksGT10",
-      "GithubRepoStarsGT10",
-      "GithubRepoWatchersGT10",
-      "GithubRepoCollaborator",
-      "GithubRepoMergedPullsGT1",
-      "GithubRepoMergedPullsGT10",
-      "StackOverflowReputationGT1K",
-      "StackOverflowReputationGT10K",
-      "StackOverflowBronzeBadgesGT10",
-      "StackOverflowSilverBadgesGT10",
-      "StackOverflowGoldBadgesGT10",
-      "SnapshotProposalsPassedGT10",
-      "SnapshotVotesGT10",
-      "SnapshotVotesGT100",
-    ];
-
-    for (const type of credentialTypes) {
-      const tokenId = ethers.utils.keccak256(
-        ethers.utils.defaultAbiCoder.encode(["string"], [type])
-      );
-      const tokenInt = ethers.BigNumber.from(tokenId);
-      console.log(`${type}: '${tokenInt}',`);
-    }
   });
 
   it("mints KRB to Issuer", async function () {
@@ -163,6 +117,15 @@ describe("KrebitNFTV01", function () {
     expect((await this.krbToken.totalSupply()).toString()).to.equal(
       (200 * 10 ** 18).toString() // 200 KRB
     );
+  });
+
+  it("grantRole to KrebitNFT contract", async function () {
+    await expect(
+      this.krbToken.grantRole(
+        ethers.utils.id("GOVERN_ROLE"),
+        this.krbNFT.address
+      )
+    ).to.emit(this.krbToken, "RoleGranted");
   });
 
   it("price to mint", async function () {
@@ -177,7 +140,7 @@ describe("KrebitNFTV01", function () {
     );
   });
 
-  it("update price to mint to 0.001 eth", async function () {
+  it("update price to mint to 0.002 eth", async function () {
     await expect(
       this.krbNFT.setPrice(ethers.utils.parseEther("0.0002").toString())
     ).to.emit(this.krbNFT, "Updated");
@@ -210,7 +173,9 @@ describe("KrebitNFTV01", function () {
     ).to.equal((0).toString());
   });
 
-  it("registerVC with eip712-vc", async function () {
+  /*
+
+  it("registerVC and mint with eip712-vc", async function () {
     let krebitTypes = getKrebitCredentialTypes();
 
     let eip712vc = new EIP712VC(this.domain);
@@ -251,12 +216,16 @@ describe("KrebitNFTV01", function () {
     ); // 6 KRB
   });
 
+
+*/
+
   it("mints credential for other address reverts", async function () {
     await expect(
       this.krbNFT.mintWithCredential(
         this.accounts[3],
         "ageGT21",
         this.eip712credential,
+        0x0,
         0x0,
         {
           value: ethers.utils.parseEther("0.0002").toString(),
@@ -267,7 +236,23 @@ describe("KrebitNFTV01", function () {
     );
   });
 
-  it("mints emits TransferSingle", async function () {
+  it("registerVC and mint with eip712-vc", async function () {
+    let krebitTypes = getKrebitCredentialTypes();
+
+    let eip712vc = new EIP712VC(this.domain);
+
+    const vc = await eip712vc.createEIP712VerifiableCredential(
+      this.eip712credential,
+      krebitTypes,
+      async (data) => {
+        return await this.issuer._signTypedData(
+          this.domain,
+          krebitTypes,
+          this.eip712credential
+        );
+      }
+    );
+
     let tokenID = ethers.utils.keccak256(
       ethers.utils.defaultAbiCoder.encode(["string"], ["ageGT21"])
     );
@@ -276,9 +261,10 @@ describe("KrebitNFTV01", function () {
         this.accounts[2],
         "ageGT21",
         this.eip712credential,
+        vc.proof.proofValue,
         0x0,
         {
-          value: ethers.utils.parseEther("0.0002").toString(),
+          value: ethers.utils.parseEther("0.0004").toString(),
         }
       )
     )
@@ -290,14 +276,40 @@ describe("KrebitNFTV01", function () {
         tokenID,
         (1).toString() // amount = 1,
       );
+
+    expect(await this.krbToken.getVCStatus(this.eip712credential)).to.equal(
+      "Issued"
+    );
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[2])).toString()
+    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[1])).toString()
+    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
   });
 
   it("balaceOf", async function () {
+    expect(await this.krbToken.getVCStatus(this.eip712credential)).to.equal(
+      "Issued"
+    );
     expect(
       (
         await this.krbNFT.balanceOfCredential(this.accounts[2], "ageGT21")
       ).toString()
     ).to.equal((1).toString());
+
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[2])).toString()
+    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
+    expect(
+      (await this.krbToken.balanceOf(this.accounts[1])).toString()
+    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
+    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
+      (6 * 10 ** 18).toString()
+    ); // 6 KRB
   });
 
   it("mints same credential reverts", async function () {
@@ -306,6 +318,7 @@ describe("KrebitNFTV01", function () {
         this.accounts[2],
         "ageGT21",
         this.eip712credential,
+        0x0,
         0x0,
         {
           value: ethers.utils.parseEther("0.0002").toString(),

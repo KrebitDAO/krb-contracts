@@ -23,6 +23,10 @@ module.exports = {
       accounts: { mnemonic: process.env.MNEMONIC },
     },
     matic: {
+      url: "https://rpc.maticvigil.com",
+      accounts: { mnemonic: process.env.MNEMONIC },
+    },
+    polygonMumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
       accounts: { mnemonic: process.env.MNEMONIC },
     },

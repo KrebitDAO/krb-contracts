@@ -20,6 +20,17 @@ interface IKRBToken {
         external
         view
         returns (string memory);
+
+    function validateSignedData(
+        address signer,
+        bytes32 structHash,
+        bytes memory signature
+    ) external view;
+
+    function registerVC(
+        VCTypesV01.VerifiableCredential memory vc,
+        bytes memory proofValue
+    ) external payable returns (bool);
 }
 
 /// @custom:security-contact contact@krebit.co
@@ -63,6 +74,11 @@ contract KrebitNFTV01 is
      * @notice Total fees collected by the contract
      */
     uint256 public feesAvailableForWithdraw; //wei
+
+    /**
+     * @notice Forcing register to KRB contract or not
+     */
+    bool public forceRegister;
 
     /**
      * @dev For config updates
@@ -117,6 +133,7 @@ contract KrebitNFTV01 is
         _KrebitContract = IKRBToken(krebitAddress);
         _contractURI = collectionURI;
         price = initialPrice;
+        forceRegister = true;
         __KrebitNFTV01_init_unchained();
     }
 
@@ -206,6 +223,14 @@ contract KrebitNFTV01 is
         return _contractURI;
     }
 
+    function setContractURI(string memory newuri) public onlyGovern {
+        _contractURI = newuri;
+    }
+
+    function setContractURI(bool force) public onlyGovern {
+        forceRegister = force;
+    }
+
     /**
      * @notice Pauses all token transfers.
      *
@@ -262,22 +287,19 @@ contract KrebitNFTV01 is
         address to,
         string memory credentialSubjectType,
         VCTypesV01.VerifiableCredential memory vc,
+        bytes memory proofValue,
         bytes memory data
     ) public payable whenNotPaused {
+        require(
+            hasRole(GOVERN_ROLE, _msgSender()) ||
+                vc.credentialSubject.ethereumAddress == _msgSender(),
+            "KRBToken: sender must be the credentialSubject address"
+        );
         require(
             vc.credentialSubject.ethereumAddress == to,
             "Mint to address must be the vc.credentialSubject address"
         );
         VCTypesV01.validateVC(vc);
-
-        uint256 uuid = uint256(VCTypesV01.getVerifiableCredential(vc));
-        require(!credentialMinted[uuid], "Credential already minted");
-
-        require(
-            keccak256(abi.encode(_KrebitContract.getVCStatus(vc))) ==
-                keccak256(abi.encode("Issued")),
-            "Credential is not in Issued state"
-        );
 
         require(
             keccak256(abi.encode(vc.credentialSubject._type)) ==
@@ -285,8 +307,38 @@ contract KrebitNFTV01 is
             "vc.credentialSubject._type doesn't match credentialSubjectType"
         );
 
-        require(msg.value >= price, "Amount sent is less than the mint price");
-        feesAvailableForWithdraw = feesAvailableForWithdraw.add(msg.value);
+        uint256 uuid = uint256(VCTypesV01.getVerifiableCredential(vc));
+        require(!credentialMinted[uuid], "Credential already minted");
+
+        if (
+            forceRegister &&
+            keccak256(abi.encode(_KrebitContract.getVCStatus(vc))) ==
+            keccak256(abi.encode("None"))
+        ) {
+            bool registered = _KrebitContract.registerVC{
+                value: vc.credentialSubject.price
+            }(vc, proofValue);
+            require(registered, "Credential failed to be registered");
+            require(
+                msg.value.sub(vc.credentialSubject.price) >= price,
+                "Amount sent is less than the mint price"
+            );
+            feesAvailableForWithdraw = feesAvailableForWithdraw.add(
+                msg.value.sub(vc.credentialSubject.price)
+            );
+        } else {
+            _KrebitContract.validateSignedData(
+                vc.issuer.ethereumAddress,
+                VCTypesV01.getVerifiableCredential(vc),
+                proofValue
+            );
+            require(
+                msg.value >= price,
+                "Amount sent is less than the mint price"
+            );
+            feesAvailableForWithdraw = feesAvailableForWithdraw.add(msg.value);
+        }
+
         //Mint Credential as NFT:
         _mint(to, getTokenId(credentialSubjectType), 1, data);
         credentialMinted[uuid] = true;

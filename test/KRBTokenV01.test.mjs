@@ -839,7 +839,7 @@ describe("KRBTokenV01", function () {
       credentialSubject: {
         id: "ceramic://doc5",
         ethereumAddress: this.accounts[3],
-        _type: "disputeCredential",
+        _type: "DisputeCredential",
         value: "encrypted",
         typeSchema: "ceramic://def",
         encrypted:

@@ -1,0 +1,323 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IKRBToken",
+  "sourceName": "contracts/KrebitNFT.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "_context",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "_type",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "ethereumAddress",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct VCTypes.Issuer",
+              "name": "issuer",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "ethereumAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_type",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "typeSchema",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "value",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "encrypted",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "trust",
+                  "type": "uint8"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "stake",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nbf",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "exp",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct VCTypes.CredentialSubject",
+              "name": "credentialSubject",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_type",
+                  "type": "string"
+                }
+              ],
+              "internalType": "struct VCTypes.CredentialSchema",
+              "name": "credentialSchema",
+              "type": "tuple"
+            },
+            {
+              "internalType": "string",
+              "name": "issuanceDate",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "expirationDate",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct VCTypes.VerifiableCredential",
+          "name": "vc",
+          "type": "tuple"
+        }
+      ],
+      "name": "getVCStatus",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "_context",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "_type",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "ethereumAddress",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct VCTypes.Issuer",
+              "name": "issuer",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "ethereumAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_type",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "typeSchema",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "value",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "encrypted",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "trust",
+                  "type": "uint8"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "stake",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nbf",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "exp",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct VCTypes.CredentialSubject",
+              "name": "credentialSubject",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "_type",
+                  "type": "string"
+                }
+              ],
+              "internalType": "struct VCTypes.CredentialSchema",
+              "name": "credentialSchema",
+              "type": "tuple"
+            },
+            {
+              "internalType": "string",
+              "name": "issuanceDate",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "expirationDate",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct VCTypes.VerifiableCredential",
+          "name": "vc",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "proofValue",
+          "type": "bytes"
+        }
+      ],
+      "name": "registerVC",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "signer",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "structHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "validateSignedData",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

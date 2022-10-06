@@ -16,9 +16,9 @@ describe("KRBCredentialNFT", function () {
   before(async function () {
     this.accounts = await ethers.provider.listAccounts();
 
-    this.KRBTokenV01 = await ethers.getContractFactory("KRBTokenV01");
+    this.KRBToken = await ethers.getContractFactory("KRBToken");
     this.krbToken = await upgrades.deployProxy(
-      this.KRBTokenV01,
+      this.KRBToken,
       ["Krebit", "rKRB", "0.1"],
       {
         kind: "uups",
@@ -43,21 +43,19 @@ describe("KRBCredentialNFT", function () {
 
     //accounts[1] is the VC Issuer
     this.issuer = ethers.provider.getSigner(this.accounts[1]);
-    const KRBTokenV01Issuer = await ethers.getContractFactory(
-      "KRBTokenV01",
+    const KRBTokenIssuer = await ethers.getContractFactory(
+      "KRBToken",
       this.issuer
     );
-    this.krbTokenIssuer = await KRBTokenV01Issuer.attach(this.krbToken.address);
+    this.krbTokenIssuer = await KRBTokenIssuer.attach(this.krbToken.address);
 
     //accounts[2] is the VC Credential Subject (user)
     this.subject = ethers.provider.getSigner(this.accounts[2]);
-    const KRBTokenV01Subject = await ethers.getContractFactory(
-      "KRBTokenV01",
+    const KRBTokenSubject = await ethers.getContractFactory(
+      "KRBToken",
       this.subject
     );
-    this.krbTokenSubject = await KRBTokenV01Subject.attach(
-      this.krbToken.address
-    );
+    this.krbTokenSubject = await KRBTokenSubject.attach(this.krbToken.address);
 
     this.domain = {
       name: "Krebit",

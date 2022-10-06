@@ -4,15 +4,15 @@ async function main() {
   this.accounts = await ethers.provider.listAccounts();
   console.log("Deploying from address:", this.accounts[0]);
 
-  const KRBTokenV01 = await ethers.getContractFactory("KRBTokenV01");
-  console.log("Deploying KRBTokenV01...");
+  const KRBToken = await ethers.getContractFactory("KRBToken");
+  console.log("Deploying KRBToken...");
   const krbToken = await upgrades.deployProxy(
-    KRBTokenV01,
-    ["Krebit", "KRB", "0.1"],
+    KRBToken,
+    ["Krebit", "KRB", "1.0"],
     { kind: "uups" }
   );
   await krbToken.deployed();
-  console.log("KRBTokenV01 deployed to:", krbToken.address);
+  console.log("KRBToken deployed to:", krbToken.address);
 
   // Mint 1000 KRB to node401
   await krbToken.mint(
@@ -20,11 +20,11 @@ async function main() {
     (200 * 10 ** 18).toString()
   );
 
-  const KrebitNFTV01 = await ethers.getContractFactory("KrebitNFTV01");
-  console.log("Deploying KrebitNFTV01...");
+  const KrebitNFT = await ethers.getContractFactory("KrebitNFT");
+  console.log("Deploying KrebitNFT...");
 
   const krbNFT = await upgrades.deployProxy(
-    KrebitNFTV01,
+    KrebitNFT,
     [
       "https://node401.krebit.id/metadata/{id}",
       "ipfs://QmVqGEjneXJv1C8UkXYfjPyUmYAJce6todRRJGm8FajNKL/contract.json",
@@ -37,7 +37,7 @@ async function main() {
   );
 
   await krbNFT.deployed();
-  console.log("KrebitNFTV01 deployed to:", krbNFT.address);
+  console.log("KrebitNFT deployed to:", krbNFT.address);
 
   krbToken.grantRole(ethers.utils.id("GOVERN_ROLE"), krbNFT.address);
 }

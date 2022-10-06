@@ -3,15 +3,15 @@ const { ethers, upgrades } = require("hardhat");
 async function main() {
   this.accounts = await ethers.provider.listAccounts();
   console.log("Deploying from address:", this.accounts[0]);
-  const KRBTokenV01 = await ethers.getContractFactory("KRBTokenV01");
-  console.log("Deploying KRBTokenV01...");
+  const KRBToken = await ethers.getContractFactory("KRBToken");
+  console.log("Deploying KRBToken...");
   const krbToken = await upgrades.deployProxy(
-    KRBTokenV01,
-    ["Krebit", "KRB", "0.1"],
+    KRBToken,
+    ["Krebit", "KRB", "1.0"],
     { kind: "uups" }
   );
   await krbToken.deployed();
-  console.log("KRBTokenV01 deployed to:", krbToken.address);
+  console.log("KRBToken deployed to:", krbToken.address);
 }
 
 main();

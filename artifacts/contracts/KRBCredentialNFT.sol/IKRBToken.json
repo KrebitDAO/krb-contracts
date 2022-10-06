@@ -35,7 +35,7 @@
                   "type": "address"
                 }
               ],
-              "internalType": "struct VCTypesV01.Issuer",
+              "internalType": "struct VCTypes.Issuer",
               "name": "issuer",
               "type": "tuple"
             },
@@ -97,7 +97,7 @@
                   "type": "uint256"
                 }
               ],
-              "internalType": "struct VCTypesV01.CredentialSubject",
+              "internalType": "struct VCTypes.CredentialSubject",
               "name": "credentialSubject",
               "type": "tuple"
             },
@@ -114,7 +114,7 @@
                   "type": "string"
                 }
               ],
-              "internalType": "struct VCTypesV01.CredentialSchema",
+              "internalType": "struct VCTypes.CredentialSchema",
               "name": "credentialSchema",
               "type": "tuple"
             },
@@ -129,7 +129,7 @@
               "type": "string"
             }
           ],
-          "internalType": "struct VCTypesV01.VerifiableCredential",
+          "internalType": "struct VCTypes.VerifiableCredential",
           "name": "vc",
           "type": "tuple"
         }

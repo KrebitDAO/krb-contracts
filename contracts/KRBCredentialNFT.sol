@@ -14,10 +14,10 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/PullPayment.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "./VCTypesV01.sol";
+import "./VCTypes.sol";
 
 interface IKRBToken {
-    function getVCStatus(VCTypesV01.VerifiableCredential memory vc)
+    function getVCStatus(VCTypes.VerifiableCredential memory vc)
         external
         view
         returns (string memory);
@@ -147,13 +147,13 @@ contract KRBCredentialNFT is
     function mintWithCredential(
         address to,
         uint256 tokenId,
-        VCTypesV01.VerifiableCredential memory vc
+        VCTypes.VerifiableCredential memory vc
     ) public payable whenNotPaused {
         require(
             vc.credentialSubject.ethereumAddress == to,
             "Mint to address must be the vc.credentialSubject address"
         );
-        VCTypesV01.validateVC(vc);
+        VCTypes.validateVC(vc);
 
         require(
             keccak256(abi.encodePacked(_KrebitContract.getVCStatus(vc))) ==

@@ -23,11 +23,11 @@ module.exports = {
       accounts: { mnemonic: process.env.MNEMONIC },
     },
     matic: {
-      url: "https://rpc.maticvigil.com",
+      url: `https://rpc-mainnet.maticvigil.com/v1/${process.env.POLYGON_PRIVATE_KEY}`,
       accounts: { mnemonic: process.env.MNEMONIC },
     },
     polygonMumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
+      url: `https://rpc-mumbai.maticvigil.com/v1/${process.env.POLYGON_PRIVATE_KEY}`,
       accounts: { mnemonic: process.env.MNEMONIC },
     },
   },
@@ -36,6 +36,7 @@ module.exports = {
     // Obtain one at https://etherscan.io/
     apiKey: {
       goerli: process.env.ETHERSCAN_API_KEY,
+      matic: process.env.POLYGONSCAN_API_KEY,
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
     },
   },

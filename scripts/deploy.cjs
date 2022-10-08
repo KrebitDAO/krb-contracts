@@ -1,4 +1,5 @@
 const { ethers, upgrades } = require("hardhat");
+require("dotenv").config();
 
 async function main() {
   this.accounts = await ethers.provider.listAccounts();
@@ -14,11 +15,8 @@ async function main() {
   await krbToken.deployed();
   console.log("KRBToken deployed to:", krbToken.address);
 
-  // Mint 1000 KRB to node401
-  await krbToken.mint(
-    "0x661f52D8D111ECcF62872bDDb2E70C12d8b4b860",
-    (200 * 10 ** 18).toString()
-  );
+  // Mint 200 KRB to node401
+  await krbToken.mint(process.env.NODE_ADDRESS, (200 * 10 ** 18).toString());
 
   const KrebitNFT = await ethers.getContractFactory("KrebitNFT");
   console.log("Deploying KrebitNFT...");
@@ -26,8 +24,8 @@ async function main() {
   const krbNFT = await upgrades.deployProxy(
     KrebitNFT,
     [
-      "https://node401.krebit.id/metadata/{id}",
-      "ipfs://QmVqGEjneXJv1C8UkXYfjPyUmYAJce6todRRJGm8FajNKL/contract.json",
+      process.env.NODE_URL + "/metadata/{id}",
+      "ipfs://QmPgG8oJUYXvxvGDrBPDXzFa47znFNiSWFhDqcfp7ZpMPC/contract.json",
       0,
       krbToken.address,
     ],

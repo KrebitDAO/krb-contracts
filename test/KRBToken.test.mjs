@@ -2,15 +2,14 @@ import pkg from "hardhat";
 const { ethers, upgrades } = pkg;
 import { expect } from "chai";
 
-import eip712vc from "@krebitdao/eip712-vc";
-const {
+import {
   EIP712VC,
   DEFAULT_CONTEXT,
   EIP712_CONTEXT,
   DEFAULT_VC_TYPE,
   getKrebitCredentialTypes,
   getEIP712Credential,
-} = eip712vc;
+} from "@krebitdao/eip712-vc";
 
 const vcTypes = {
   VerifiableCredential: [

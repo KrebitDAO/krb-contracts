@@ -11,6 +11,9 @@ import {
   getEIP712Credential,
 } from "@krebitdao/eip712-vc";
 
+import krebit from "@krebitdao/reputation-passport";
+import LitJsSdk from "lit-js-sdk/build/index.node.js";
+
 describe("KrebitNFT", function () {
   before(async function () {
     this.accounts = await ethers.provider.listAccounts();
@@ -170,52 +173,6 @@ describe("KrebitNFT", function () {
     ).to.equal((0).toString());
   });
 
-  /*
-
-  it("registerVC and mint with eip712-vc", async function () {
-    let krebitTypes = getKrebitCredentialTypes();
-
-    let eip712vc = new EIP712VC(this.domain);
-
-    const vc = await eip712vc.createEIP712VerifiableCredential(
-      this.eip712credential,
-      krebitTypes,
-      async (data) => {
-        return await this.issuer._signTypedData(
-          this.domain,
-          krebitTypes,
-          this.eip712credential
-        );
-      }
-    );
-
-    //Issue
-    await expect(
-      this.krbTokenSubject.registerVC(
-        this.eip712credential,
-        vc.proof.proofValue,
-        {
-          value: ethers.utils.parseEther("0.0002").toString(),
-        }
-      )
-    ).to.emit(this.krbToken, "Issued");
-    expect(await this.krbToken.getVCStatus(this.eip712credential)).to.equal(
-      "Issued"
-    );
-    expect(
-      (await this.krbToken.balanceOf(this.accounts[2])).toString()
-    ).to.equal((3 * 10 ** 18).toString()); // 3 KRB
-    expect(
-      (await this.krbToken.balanceOf(this.accounts[1])).toString()
-    ).to.equal((197 * 10 ** 18).toString()); // 197 KRB
-    expect((await this.krbToken.stakeOf(this.accounts[1])).toString()).to.equal(
-      (6 * 10 ** 18).toString()
-    ); // 6 KRB
-  });
-
-
-*/
-
   it("mints credential for other address reverts", async function () {
     await expect(
       this.krbNFT.mintWithCredential(
@@ -248,6 +205,25 @@ describe("KrebitNFT", function () {
           this.eip712credential
         );
       }
+    );
+
+    const w3Credential = {
+      ...credential,
+      proof: verifiableCredential.proof,
+    };
+
+    const Issuer = new krebit.core.Krebit({
+      wallet: this.issuer,
+      ethProvider: ethers.provider,
+      network: "mumbai",
+      address: this.issuer.address,
+      ceramicUrl: "https://ceramic-clay.3boxlabs.com",
+      litSdk: LitJsSdk,
+    });
+
+    console.log(
+      "Verifying w3Credential:",
+      await Issuer.checkCredential(w3Credential)
     );
 
     let tokenID = ethers.utils.keccak256(
@@ -288,7 +264,7 @@ describe("KrebitNFT", function () {
     ); // 6 KRB
   });
 
-  it("balaceOf", async function () {
+  it("balanceOf", async function () {
     expect(await this.krbToken.getVCStatus(this.eip712credential)).to.equal(
       "Issued"
     );

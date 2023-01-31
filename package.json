@@ -10,7 +10,7 @@
     "docs": "npx solidity-docgen --solc-module solc-0.8 -t ./templates",
     "deploy-mumbai": "npx hardhat run --network polygonMumbai scripts/deploy.cjs",
     "deploy-matic": "npx hardhat run --network matic scripts/deploy.cjs",
-    "deploy-escrow": "npx hardhat run --network polygonMumbai scripts/deployEscrow.cjs",
+    "deploy-escrow": "npx hardhat run --network matic scripts/deployEscrow.cjs",
     "deploy-nftdrop": "npx hardhat run --network matic scripts/deployNFTDrop.cjs"
   },
   "repository": {

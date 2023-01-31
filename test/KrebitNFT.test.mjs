@@ -11,7 +11,7 @@ import {
   getEIP712Credential,
 } from "@krebitdao/eip712-vc";
 
-import krebit from "@krebitdao/reputation-passport";
+//import krebit from "@krebitdao/reputation-passport";
 import LitJsSdk from "lit-js-sdk/build/index.node.js";
 
 describe("KrebitNFT", function () {

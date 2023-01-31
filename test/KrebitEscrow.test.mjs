@@ -76,14 +76,15 @@ describe("KrebitEscrow", function () {
       type: [DEFAULT_VC_TYPE, "Referral"],
       id: "https://krebit.id/referral/id/1234",
       issuer: {
-        id: "did:issuer",
+        id: "did:referrer",
         ethereumAddress: this.accounts[0],
       },
       credentialSubject: {
         id: "did:seller",
         ethereumAddress: this.accounts[2],
         type: "Referral",
-        value: '{"value":"ok","evidence":""}',
+        value:
+          '{"issueTo":["0xd6eeF6A4ceB9270776d6b388cFaBA62f5Bc3357f"],"name":"Great builder","description":"developer and founder","proof":"","image":"","entity":"Personal","parentCredential":"ceramic://kjzl6cwe1jw145u5avj2g3izida1x1nwfmzlogbqqdiml5skbmibponc0xt5rwe","onBehalveOfIssuer":{"id":"did:pkh:eip155:1:0xd9d96fb150136798861363d8ad9fe4033cfc32b3","ethereumAddress":"0xD9D96fb150136798861363d8Ad9Fe4033cfC32b3"}}',
         typeSchema: "ceramic://def",
         encrypted: "null",
         trust: 50,
@@ -324,7 +325,11 @@ describe("KrebitEscrow", function () {
       "Created"
     );
     await expect(
-      this.escrowBuyer.buyerCancel(this.referralCredential, this.canceledDeal)
+      this.escrowBuyer.buyerCancel(
+        this.referralCredential,
+        this.canceledDeal,
+        this.accounts[0]
+      )
     ).to.be.revertedWith("Deal can't be canceled yet");
   });
 
@@ -418,13 +423,21 @@ describe("KrebitEscrow", function () {
 
   it("buyerCancel fails", async function () {
     await expect(
-      this.escrowBuyer.buyerCancel(this.referralCredential, this.dealCredential)
+      this.escrowBuyer.buyerCancel(
+        this.referralCredential,
+        this.dealCredential,
+        this.accounts[0]
+      )
     ).to.be.revertedWith("Deal can't be canceled");
   });
 
   it("Release by buyer", async function () {
     await expect(
-      this.escrowBuyer.release(this.referralCredential, this.dealCredential)
+      this.escrowBuyer.release(
+        this.referralCredential,
+        this.dealCredential,
+        "0xd9d96fb150136798861363d8ad9fe4033cfc32b3"
+      )
     ).to.emit(this.escrowBuyer, "Released");
     expect(await this.escrowBuyer.getDealStatus(this.dealCredential)).to.equal(
       "Released"
@@ -439,7 +452,11 @@ describe("KrebitEscrow", function () {
     ).to.equal((0.09 * 10 ** 18).toString());
     //Referrer balance
     expect(
-      (await this.escrowBuyer.payments(this.accounts[0])).toString()
+      (
+        await this.escrowBuyer.payments(
+          "0xd9d96fb150136798861363d8ad9fe4033cfc32b3"
+        )
+      ).toString()
     ).to.equal((0.001 * 10 ** 18).toString());
     //Fees balance
     expect(
@@ -478,7 +495,11 @@ describe("KrebitEscrow", function () {
 
   it("buyerCancel", async function () {
     await expect(
-      this.escrowBuyer.buyerCancel(this.referralCredential, this.canceledDeal)
+      this.escrowBuyer.buyerCancel(
+        this.referralCredential,
+        this.canceledDeal,
+        this.accounts[0]
+      )
     ).to.emit(this.escrowBuyer, "CancelledByBuyer");
     expect(await this.escrowBuyer.getDealStatus(this.canceledDeal)).to.equal(
       "BuyerCanceled"
@@ -494,7 +515,7 @@ describe("KrebitEscrow", function () {
     //Referrer balance
     expect(
       (await this.escrowBuyer.payments(this.accounts[0])).toString()
-    ).to.equal((0.002 * 10 ** 18).toString());
+    ).to.equal((0.001 * 10 ** 18).toString());
     //Fees balance
     expect(
       (await this.escrowBuyer.feesAvailableForWithdraw()).toString()
@@ -503,7 +524,11 @@ describe("KrebitEscrow", function () {
 
   it("Release expired", async function () {
     await expect(
-      this.escrowBuyer.release(this.referralCredential, this.canceledDeal)
+      this.escrowBuyer.release(
+        this.referralCredential,
+        this.canceledDeal,
+        this.accounts[0]
+      )
     ).to.be.revertedWith("Deal can't be released");
   });
 
@@ -538,7 +563,8 @@ describe("KrebitEscrow", function () {
     await expect(
       this.escrowSeller.sellerCancel(
         this.referralCredential,
-        this.sellerCancelCredential
+        this.sellerCancelCredential,
+        this.accounts[0]
       )
     ).to.emit(this.escrowSeller, "CancelledBySeller");
     expect(
@@ -555,7 +581,7 @@ describe("KrebitEscrow", function () {
     //Referrer balance
     expect(
       (await this.escrowSeller.payments(this.accounts[0])).toString()
-    ).to.equal((0.003 * 10 ** 18).toString());
+    ).to.equal((0.002 * 10 ** 18).toString());
     //Fees balance
     expect(
       (await this.escrowSeller.feesAvailableForWithdraw()).toString()
@@ -614,7 +640,7 @@ describe("KrebitEscrow", function () {
     //Referrer balance
     expect(
       (await this.krbEscrow.payments(this.accounts[0])).toString()
-    ).to.equal((0.003 * 10 ** 18).toString());
+    ).to.equal((0.002 * 10 ** 18).toString());
     //Fees balance
     expect(
       (await this.krbEscrow.feesAvailableForWithdraw()).toString()
@@ -629,7 +655,7 @@ describe("KrebitEscrow", function () {
     //Referrer balance
     expect(
       (await this.krbEscrow.payments(this.accounts[0])).toString()
-    ).to.equal((0.033 * 10 ** 18).toString());
+    ).to.equal((0.032 * 10 ** 18).toString());
     //Fees balance
     expect(
       (await this.krbEscrow.feesAvailableForWithdraw()).toString()

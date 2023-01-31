@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/PullPayment.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./VCTypes.sol";
 
@@ -335,7 +336,8 @@ contract KrebitEscrow is
      */
     function release(
         VCTypes.VerifiableCredential memory referralCredential,
-        VCTypes.VerifiableCredential memory dealCredential
+        VCTypes.VerifiableCredential memory dealCredential,
+        address payable _referrer
     ) external nonReentrant returns (bool) {
         require(
             dealCredential.credentialSubject.ethereumAddress == _msgSender(),
@@ -361,9 +363,28 @@ contract KrebitEscrow is
         address payable _seller = payable(
             dealCredential.issuer.ethereumAddress
         );
-        address payable _referrer = payable(
-            referralCredential.issuer.ethereumAddress
-        );
+
+        if (_referrer != payable(referralCredential.issuer.ethereumAddress)) {
+            /*string memory referrerIssuer = string.concat(
+                '\\"onBehalveOfIssuer\\":{\\"id\\":\\"did:pkh:eip155:1:',
+                abi.encodePacked(referrerAddress)
+            );*/
+            string memory referrerAddress = Strings.toHexString(
+                uint256(uint160(address(_referrer))),
+                20
+            );
+            require(
+                containsString(
+                    referrerAddress,
+                    referralCredential.credentialSubject.value
+                ),
+                string.concat(
+                    "referralCredential.credentialSubject.value doesn't match: ",
+                    referrerAddress
+                )
+            );
+        }
+
         transferMinusFee(
             _seller,
             dealCredential.credentialSubject.price,
@@ -378,7 +399,8 @@ contract KrebitEscrow is
      */
     function sellerCancel(
         VCTypes.VerifiableCredential memory referralCredential,
-        VCTypes.VerifiableCredential memory dealCredential
+        VCTypes.VerifiableCredential memory dealCredential,
+        address payable _referrer
     ) external nonReentrant returns (bool) {
         require(
             dealCredential.issuer.ethereumAddress == _msgSender(),
@@ -404,9 +426,26 @@ contract KrebitEscrow is
         address payable _buyer = payable(
             dealCredential.credentialSubject.ethereumAddress
         );
-        address payable _referrer = payable(
-            referralCredential.issuer.ethereumAddress
-        );
+        if (_referrer != payable(referralCredential.issuer.ethereumAddress)) {
+            /*string memory referrerIssuer = string.concat(
+                '\\"onBehalveOfIssuer\\":{\\"id\\":\\"did:pkh:eip155:1:',
+                abi.encodePacked(referrerAddress)
+            );*/
+            string memory referrerAddress = Strings.toHexString(
+                uint256(uint160(address(_referrer))),
+                20
+            );
+            require(
+                containsString(
+                    referrerAddress,
+                    referralCredential.credentialSubject.value
+                ),
+                string.concat(
+                    "referralCredential.credentialSubject.value doesn't match: ",
+                    referrerAddress
+                )
+            );
+        }
         transferMinusFee(
             _buyer,
             dealCredential.credentialSubject.price,
@@ -422,7 +461,8 @@ contract KrebitEscrow is
      */
     function buyerCancel(
         VCTypes.VerifiableCredential memory referralCredential,
-        VCTypes.VerifiableCredential memory dealCredential
+        VCTypes.VerifiableCredential memory dealCredential,
+        address payable _referrer
     ) external nonReentrant returns (bool) {
         require(
             dealCredential.credentialSubject.ethereumAddress == _msgSender(),
@@ -450,9 +490,26 @@ contract KrebitEscrow is
         address payable _buyer = payable(
             dealCredential.credentialSubject.ethereumAddress
         );
-        address payable _referrer = payable(
-            referralCredential.issuer.ethereumAddress
-        );
+        if (_referrer != payable(referralCredential.issuer.ethereumAddress)) {
+            /*string memory referrerIssuer = string.concat(
+                '\\"onBehalveOfIssuer\\":{\\"id\\":\\"did:pkh:eip155:1:',
+                abi.encodePacked(referrerAddress)
+            );*/
+            string memory referrerAddress = Strings.toHexString(
+                uint256(uint160(address(_referrer))),
+                20
+            );
+            require(
+                containsString(
+                    referrerAddress,
+                    referralCredential.credentialSubject.value
+                ),
+                string.concat(
+                    "referralCredential.credentialSubject.value doesn't match: ",
+                    referrerAddress
+                )
+            );
+        }
         transferMinusFee(
             _buyer,
             dealCredential.credentialSubject.price,
@@ -574,5 +631,36 @@ contract KrebitEscrow is
         uint256 _value
     ) external onlyGovern {
         _tokenContract.approve(_spender, _value);
+    }
+
+    /**
+     * @notice finds a string on another string
+     */
+    function containsString(string memory what, string memory where)
+        internal
+        pure
+        returns (bool found)
+    {
+        bytes memory whatBytes = bytes(what);
+        bytes memory whereBytes = bytes(where);
+
+        if (whereBytes.length < whatBytes.length) {
+            return false;
+        }
+
+        found = false;
+        for (uint256 i = 0; i <= whereBytes.length - whatBytes.length; i++) {
+            bool flag = true;
+            for (uint256 j = 0; j < whatBytes.length; j++)
+                if (whereBytes[i + j] != whatBytes[j]) {
+                    flag = false;
+                    break;
+                }
+            if (flag) {
+                found = true;
+                break;
+            }
+        }
+        return found;
     }
 }
